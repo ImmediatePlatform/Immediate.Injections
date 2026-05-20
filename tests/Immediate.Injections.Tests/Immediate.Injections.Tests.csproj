@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
+	<OutputType>Exe</OutputType>
+	<_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
+	<Features>runtime-async=on</Features>
+  </PropertyGroup>
+
+  <ItemGroup Label="Usings">
+	<Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="4.12.0" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.12.0" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.12.0" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+	<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+	<PackageReference Include="Scriban" />
+	<PackageReference Include="Verify.SourceGenerators" />
+	<PackageReference Include="Verify.XunitV3" />
+	<PackageReference Include="xunit.v3.mtp-v2" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net11.0' ">
+	<PackageReference Include="Basic.Reference.Assemblies.Net110" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+	<PackageReference Include="Basic.Reference.Assemblies.Net100" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+	<PackageReference Include="Basic.Reference.Assemblies.Net90" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+	<PackageReference Include="Basic.Reference.Assemblies.Net80" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="../../src/Immediate.Injections.Shared/Immediate.Injections.Shared.csproj" />
+	<ProjectReference Include="../../src/Immediate.Injections.Analyzers/Immediate.Injections.Analyzers.csproj" />
+	<ProjectReference Include="../../src/Immediate.Injections.Generators/Immediate.Injections.Generators.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Compile Include="../../src/Immediate.Injections.Analyzers/DiagnosticIds.cs" />
+  </ItemGroup>
+
+</Project>

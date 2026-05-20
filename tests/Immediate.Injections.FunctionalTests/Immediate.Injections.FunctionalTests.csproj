@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
+	<OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup Label="Usings">
+	<Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	<PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+	<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+	<PackageReference Include="Verify.XunitV3" />
+	<PackageReference Include="xunit.v3.mtp-v2" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="../../src/Immediate.Injections.Shared/Immediate.Injections.Shared.csproj" />
+	<ProjectReference Include="../../src/Immediate.Injections.Analyzers/Immediate.Injections.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	<ProjectReference Include="../../src/Immediate.Injections.Generators/Immediate.Injections.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

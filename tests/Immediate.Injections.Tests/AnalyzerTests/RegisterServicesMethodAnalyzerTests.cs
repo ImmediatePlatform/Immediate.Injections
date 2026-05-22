@@ -1,5 +1,4 @@
 using Immediate.Injections.Analyzers;
-using Immediate.Injections.Tests.GeneratorTests;
 
 namespace Immediate.Injections.Tests.AnalyzerTests;
 

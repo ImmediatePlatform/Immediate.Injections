@@ -11,6 +11,8 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 	{
 		var assemblyDefaults = GetAssemblyDefaults(context);
 		RenderServiceCollectionExtensions(context, assemblyDefaults);
+
+		ProcessRegisterServicesMethods(context, assemblyDefaults);
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
@@ -68,5 +70,20 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.WithTrackingName("AssemblyDefaults");
 
 		return assemblyDefaults;
+	}
+
+	private void ProcessRegisterServicesMethods(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<AssemblyDefaults> assemblyDefaults)
+	{
+		var methods = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				"Immediate.Injections.Shared.RegisterServicesAttribute",
+				(node, _) => node is MethodDeclarationSyntax,
+				TransformRegisterServicesMethod
+			)
+			.WhereNotNull()
+			.Collect()
+			.WithTrackingName("RegisterServicesMethods");
+
+		RenderRegisterServicesMethods(context, assemblyDefaults, methods);
 	}
 }

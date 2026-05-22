@@ -138,6 +138,8 @@ public static class GeneratorTestHelper
 			"RootNamespace",
 			"AssemblyRegistrationDefaults",
 			"AssemblyDefaults",
+
+			"RegisterServicesMethods",
 		};
 
 	private static void AssertSteps(

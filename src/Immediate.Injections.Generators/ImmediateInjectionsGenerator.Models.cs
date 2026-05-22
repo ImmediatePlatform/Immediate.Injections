@@ -19,4 +19,10 @@ public sealed partial class ImmediateInjectionsGenerator
 		public required string DuplicateStrategy { get; init; }
 		public required string RegistrationStrategy { get; init; }
 	}
+
+	private sealed record RegisterServicesMethod
+	{
+		public required string FullName { get; init; }
+		public required bool ReceivesTags { get; init; }
+	}
 }

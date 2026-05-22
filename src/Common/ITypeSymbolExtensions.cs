@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace Immediate.Injections;
@@ -16,26 +17,14 @@ internal static class ITypeSymbolExtensions
 			};
 	}
 
-	extension(ITypeSymbol typeSymbol)
+	extension([NotNullWhen(true)] ITypeSymbol? typeSymbol)
 	{
 		public bool IsIServiceCollection =>
 			typeSymbol is INamedTypeSymbol
 			{
 				Arity: 0,
 				Name: "IServiceCollection",
-				ContainingNamespace:
-				{
-					Name: "DependencyInjection",
-					ContainingNamespace:
-					{
-						Name: "Extensions",
-						ContainingNamespace:
-						{
-							Name: "Microsoft",
-							ContainingNamespace.IsGlobalNamespace: true,
-						},
-					},
-				},
+				ContainingNamespace.IsDependencyInjection: true,
 			};
 
 		public bool IsReadOnlySpanString =>
@@ -54,6 +43,47 @@ internal static class ITypeSymbolExtensions
 				{
 					Name: "System",
 					ContainingNamespace.IsGlobalNamespace: true,
+				},
+			};
+
+		public bool IsRegisterServicesAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "RegisterServicesAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+	}
+
+	extension(INamespaceSymbol namespaceSymbol)
+	{
+		public bool IsDependencyInjection =>
+			namespaceSymbol is
+			{
+				Name: "DependencyInjection",
+				ContainingNamespace:
+				{
+					Name: "Extensions",
+					ContainingNamespace:
+					{
+						Name: "Microsoft",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
+				},
+			};
+
+		public bool IsImmediateInjectionsShared =>
+			namespaceSymbol is
+			{
+				Name: "Shared",
+				ContainingNamespace:
+				{
+					Name: "Injections",
+					ContainingNamespace:
+					{
+						Name: "Immediate",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
 				},
 			};
 	}

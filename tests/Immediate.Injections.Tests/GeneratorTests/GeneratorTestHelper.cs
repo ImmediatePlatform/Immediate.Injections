@@ -11,11 +11,19 @@ public static class GeneratorTestHelper
 	public static GeneratorDriverRunResult RunGenerator(
 		[StringSyntax("c#-test")] string source,
 		params ReadOnlySpan<string> skippedSteps
+	) => RunGenerator(source, LanguageVersion.CSharp13, skippedSteps);
+
+	public static GeneratorDriverRunResult RunGenerator(
+		[StringSyntax("c#-test")] string source,
+		LanguageVersion languageVersion,
+		params ReadOnlySpan<string> skippedSteps
 	)
 	{
+		var parseOptions = new CSharpParseOptions(languageVersion);
+
 		var syntaxTree = CSharpSyntaxTree.ParseText(
 			source,
-			ParseOptions,
+			parseOptions,
 			cancellationToken: TestContext.Current.CancellationToken
 		);
 
@@ -34,14 +42,14 @@ public static class GeneratorTestHelper
 
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(
 			generators: [new ImmediateInjectionsGenerator().AsSourceGenerator()],
-			parseOptions: ParseOptions,
+			parseOptions: parseOptions,
 			driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true)
 		);
 
 		driver = RunGenerator(driver, compilation);
 		var result = driver.GetRunResult();
 
-		VerifyIncrementality(driver, compilation, skippedSteps);
+		VerifyIncrementality(driver, compilation, parseOptions, skippedSteps);
 
 		return result;
 	}
@@ -72,13 +80,14 @@ public static class GeneratorTestHelper
 	private static void VerifyIncrementality(
 		GeneratorDriver driver,
 		Compilation compilation,
+		CSharpParseOptions parseOptions,
 		ReadOnlySpan<string> skippedSteps
 	)
 	{
 		var clone = compilation.Clone().AddSyntaxTrees(
 			CSharpSyntaxTree.ParseText(
 				"// dummy",
-				ParseOptions,
+				parseOptions,
 				cancellationToken: TestContext.Current.CancellationToken
 			)
 		);
@@ -122,13 +131,13 @@ public static class GeneratorTestHelper
 		}
 	}
 
-	private static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.CSharp12);
-
 	private static ReadOnlySpan<string> TrackedSteps =>
 		new string[]
 		{
 			"AssemblyName",
 			"RootNamespace",
+			"AssemblyRegistrationDefaults",
+			"AssemblyDefaults",
 		};
 
 	private static void AssertSteps(

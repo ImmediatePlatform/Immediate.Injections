@@ -21,6 +21,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					.Render(new
 					{
 						assemblyDefaults.AssemblyName,
+						assemblyDefaults.LanguageVersion,
 						assemblyDefaults.RootNamespace,
 
 						Version = ThisAssembly.InformationalVersion,

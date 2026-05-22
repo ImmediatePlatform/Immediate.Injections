@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Immediate.Injections.Generators;
@@ -9,18 +10,28 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		var assemblyDefaults = GetAssemblyDefaults(context);
-
 		RenderServiceCollectionExtensions(context, assemblyDefaults);
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
 	{
 		var assemblyName = context.CompilationProvider
-			.Select((cp, _) => cp.AssemblyName!
-				.Replace(".", string.Empty)
-				.Replace(" ", string.Empty)
-				.Trim()
-			)
+			.Select((cp, _) =>
+			{
+				var assemblyName = cp.AssemblyName?
+					.Replace(".", string.Empty)
+					.Replace(" ", string.Empty)
+					.Trim()
+					?? "";
+
+				var languageVersion = (cp.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.CSharp12;
+
+				return new
+				{
+					AssemblyName = assemblyName,
+					LanguageVersion = languageVersion,
+				};
+			})
 			.WithTrackingName("AssemblyName");
 
 		var @namespace = context
@@ -47,8 +58,10 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.Combine(assemblyRegistrationDefaults)
 			.Select((x, _) => new AssemblyDefaults
 			{
-				AssemblyName = x.Left.Left,
+				AssemblyName = x.Left.Left.AssemblyName,
+				LanguageVersion = x.Left.Left.LanguageVersion,
 				RootNamespace = x.Left.Right,
+
 				DuplicateStrategy = x.Right?.DuplicateStrategy ?? "Append",
 				RegistrationStrategy = x.Right?.RegistrationStrategy ?? "Self",
 			})

@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
+	<IsPackable>true</IsPackable>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Nuget">
+	<Title>Immediate.Injections</Title>
+	<Description>Source-generated Microsoft.Extensions.DependencyInjection registrations.</Description>
+
+	<Authors>Immediate.Injections Developers</Authors>
+	<Copyright>© 2026 Immediate.Injections Developers</Copyright>
+
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageReadmeFile>readme.md</PackageReadmeFile>
+	<PackageTags>csharp-sourcegenerator;ioc;dependency-injection;inversion-of-control;di;injection-container;injection-framework</PackageTags>
+
+	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+	<RepositoryUrl>https://github.com/ImmediatePlatform/Immediate.Injections</RepositoryUrl>
+  </PropertyGroup>
+
+  <!--
+	This ensures the library will be packaged as a source generator when we use `dotnet pack`
+	-->
+  <ItemGroup>
+	<None Include="../../readme.md" Pack="true" PackagePath="/" />
+	<None Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Analyzers.dll" Pack="true" PackagePath="analyzers/roslyn4.8/dotnet/cs" Visible="true" />
+	<None Include="../Immediate.Injections.Generators/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Generators.dll" Pack="true" PackagePath="analyzers/roslyn4.8/dotnet/cs" Visible="true" />
+
+	<TfmSpecificPackageFile
+	  Include="$(PkgScriban)/lib/netstandard2.0/Scriban.dll"
+	  Pack="true"
+	  PackagePath="analyzers/roslyn4.8/dotnet/cs"
+	  Condition=" '$(TargetFramework)' == 'net8.0' " />
+
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Shared/bin/$(Configuration)/$(TargetFramework)/Immediate.Injections.Shared.dll"
+	  Pack="true"
+	  PackagePath="lib/$(TargetFramework)" />
+
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Shared/bin/$(Configuration)/$(TargetFramework)/Immediate.Injections.Shared.xml"
+	  Pack="true"
+	  PackagePath="lib/$(TargetFramework)" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+	<PackageReference Include="MinVer" PrivateAssets="all" />
+	<PackageReference Include="Scriban" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="../Immediate.Injections.Analyzers/Immediate.Injections.Analyzers.csproj" ReferenceOutputAssembly="false" />
+	<ProjectReference Include="../Immediate.Injections.Generators/Immediate.Injections.Generators.csproj" ReferenceOutputAssembly="false" />
+	<ProjectReference Include="../Immediate.Injections.Shared/Immediate.Injections.Shared.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

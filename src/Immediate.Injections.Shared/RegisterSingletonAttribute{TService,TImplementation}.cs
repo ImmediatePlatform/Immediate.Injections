@@ -1,0 +1,21 @@
+namespace Immediate.Injections.Shared;
+
+/// <summary>
+///		Attribute to indicate the specified implementation should be registered for dependency injection
+///		as a singleton implementation for the specified service.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class RegisterSingletonAttribute<TService, TImplementation> : Attribute
+{
+	/// <inheritdoc cref="RegisterSingletonAttribute.ServiceKey" />
+	public object? ServiceKey { get; init; }
+
+	/// <inheritdoc cref="RegisterSingletonAttribute.Factory" />
+	public string? Factory { get; init; }
+
+	/// <inheritdoc cref="RegisterSingletonAttribute.DuplicateStrategy" />
+	public DuplicateStrategy? DuplicateStrategy { get; init; }
+
+	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
+	public string[]? Tags { get; init; }
+}

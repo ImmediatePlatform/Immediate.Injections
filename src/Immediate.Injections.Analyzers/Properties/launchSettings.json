@@ -1,0 +1,8 @@
+{
+	"profiles": {
+		"Immediate.Injections.FunctionalTests": {
+			"commandName": "DebugRoslynComponent",
+			"targetProject": "../../tests/Immediate.Injections.FunctionalTests/Immediate.Injections.FunctionalTests.csproj"
+		}
+	}
+}

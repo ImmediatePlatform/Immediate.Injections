@@ -43,4 +43,19 @@ public sealed partial class ImmediateInjectionsGenerator
 			return fullName[(start + 1)..];
 		}
 	}
+
+	private RegisterServicesMethod? TransformRegisterServicesMethod(GeneratorAttributeSyntaxContext context, CancellationToken token)
+	{
+		return context.TargetSymbol switch
+		{
+			IMethodSymbol { IsValidRegisterServicesMethod: true } ims =>
+				new()
+				{
+					FullName = ims.ToDisplayString(DisplayNameFormatters.MethodFullyQualifiedWithType),
+					ReceivesTags = ims.Parameters.Length == 2,
+				},
+
+			_ => null,
+		};
+	}
 }

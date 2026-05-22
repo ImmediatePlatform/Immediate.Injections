@@ -8,7 +8,7 @@
 
   <PropertyGroup Label="Nuget">
 	<Title>Immediate.Injections</Title>
-	<Description>An implementation of the mediator pattern in .NET using source-generation.</Description>
+	<Description>Source-generated Microsoft.Extensions.DependencyInjection registrations.</Description>
 
 	<Authors>Immediate.Injections Developers</Authors>
 	<Copyright>© 2026 Immediate.Injections Developers</Copyright>

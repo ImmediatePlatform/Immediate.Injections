@@ -10,7 +10,10 @@ namespace {{ root_namespace }};
 [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Immediate.Injections", "{{ version }}")]
 public static partial class RegistrationServiceCollectionExtensions
 {
-	public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection Add{{ assembly_name }}Services(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, params ReadOnlySpan<string> tags)
+	public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection Add{{ assembly_name }}Services(
+		this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+		params {{ if language_version <= 1200 }}string[]{{ else }}global::System.ReadOnlySpan<string>{{ end }} tags
+	)
 	{
 		services.RegisterScoped(tags);
 		services.RegisterScoped1(tags);
@@ -29,17 +32,17 @@ public static partial class RegistrationServiceCollectionExtensions
 		return services;
 	}
 
-	static partial void RegisterScoped(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterScoped1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterScoped2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
+	static partial void RegisterScoped(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterScoped1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterScoped2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 
-	static partial void RegisterSingleton(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterSingleton1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterSingleton2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
+	static partial void RegisterSingleton(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterSingleton1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterSingleton2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 
-	static partial void RegisterTransient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterTransient1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
-	static partial void RegisterTransient2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
+	static partial void RegisterTransient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterTransient1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+	static partial void RegisterTransient2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 
-	static partial void RegisterServices(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, ReadOnlySpan<string> tags);
+	static partial void RegisterServices(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Scriban;
@@ -7,6 +8,7 @@ namespace Immediate.Injections.Generators;
 public sealed partial class ImmediateInjectionsGenerator
 {
 	private static readonly Template ServiceCollectionExtensionsTemplate = GetTemplate("ServiceCollectionExtensions");
+	private static readonly Template RegisterServicesTemplate = GetTemplate("RegisterServices");
 
 	private static void RenderServiceCollectionExtensions(
 		IncrementalGeneratorInitializationContext context,
@@ -29,6 +31,36 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				context.CancellationToken.ThrowIfCancellationRequested();
 				context.AddSource("II.ServiceCollectionExtensions.g.cs", source);
+			}
+		);
+	}
+
+	private static void RenderRegisterServicesMethods(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		IncrementalValueProvider<ImmutableArray<RegisterServicesMethod>> methods
+	)
+	{
+		context.RegisterSourceOutput(
+			methods.Combine(assemblyDefaults),
+			(context, x) =>
+			{
+				var (methods, assemblyDefaults) = x;
+
+				if (methods.Length == 0)
+					return;
+
+				var source = RegisterServicesTemplate
+					.Render(new
+					{
+						assemblyDefaults.AssemblyName,
+						assemblyDefaults.RootNamespace,
+
+						Methods = methods,
+					});
+
+				context.CancellationToken.ThrowIfCancellationRequested();
+				context.AddSource("II.RegisterServicesMethods.g.cs", source);
 			}
 		);
 	}

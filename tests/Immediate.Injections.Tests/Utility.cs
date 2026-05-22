@@ -1,3 +1,4 @@
+using Immediate.Injections.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,7 @@ public static class Utility
 
 	public static IEnumerable<MetadataReference> GetAdditionalReferences() =>
 	[
+		MetadataReference.CreateFromFile(typeof(RegisterServicesAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 	];

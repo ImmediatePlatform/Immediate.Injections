@@ -13,6 +13,13 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		RenderServiceCollectionExtensions(context, assemblyDefaults);
 
 		ProcessRegisterServicesMethods(context, assemblyDefaults);
+
+		foreach (var lifetime in new[] { "Scoped", "Singleton", "Transient" })
+		{
+			ProcessRegisterClass0(context, assemblyDefaults, lifetime);
+			ProcessRegisterClass1(context, assemblyDefaults, lifetime);
+			ProcessRegisterClass2(context, assemblyDefaults, lifetime);
+		}
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
@@ -65,14 +72,13 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 				RootNamespace = x.Left.Right,
 
 				DuplicateStrategy = x.Right?.DuplicateStrategy ?? "Append",
-				RegistrationStrategy = x.Right?.RegistrationStrategy ?? "Self",
 			})
 			.WithTrackingName("AssemblyDefaults");
 
 		return assemblyDefaults;
 	}
 
-	private void ProcessRegisterServicesMethods(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<AssemblyDefaults> assemblyDefaults)
+	private static void ProcessRegisterServicesMethods(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<AssemblyDefaults> assemblyDefaults)
 	{
 		var methods = context.SyntaxProvider
 			.ForAttributeWithMetadataName(
@@ -85,5 +91,68 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.WithTrackingName("RegisterServicesMethods");
 
 		RenderRegisterServicesMethods(context, assemblyDefaults, methods);
+	}
+
+	private static void ProcessRegisterClass0(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		string lifetime
+	)
+	{
+		var attributeQualifiedName = $"Immediate.Injections.Shared.Register{lifetime}Attribute";
+
+		var classes = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				attributeQualifiedName,
+				(node, _) => node is ClassDeclarationSyntax,
+				TransformRegisterClass0
+			)
+			.SelectMany((x, _) => x)
+			.Collect()
+			.WithTrackingName($"Register{lifetime}");
+
+		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 0);
+	}
+
+	private static void ProcessRegisterClass1(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		string lifetime
+	)
+	{
+		var attributeQualifiedName = $"Immediate.Injections.Shared.Register{lifetime}Attribute`1";
+
+		var classes = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				attributeQualifiedName,
+				(node, _) => node is ClassDeclarationSyntax,
+				TransformRegisterClass1
+			)
+			.WhereNotNull()
+			.Collect()
+			.WithTrackingName($"Register{lifetime}`1");
+
+		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 1);
+	}
+
+	private static void ProcessRegisterClass2(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		string lifetime
+	)
+	{
+		var attributeQualifiedName = $"Immediate.Injections.Shared.Register{lifetime}Attribute`2";
+
+		var classes = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				attributeQualifiedName,
+				(node, _) => node is ClassDeclarationSyntax,
+				TransformRegisterClass2
+			)
+			.WhereNotNull()
+			.Collect()
+			.WithTrackingName($"Register{lifetime}`2");
+
+		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 2);
 	}
 }

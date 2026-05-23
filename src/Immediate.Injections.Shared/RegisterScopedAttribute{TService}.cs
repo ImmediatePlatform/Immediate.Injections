@@ -14,7 +14,7 @@ public sealed class RegisterScopedAttribute<TService> : Attribute
 	public string? Factory { get; init; }
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.DuplicateStrategy" />
-	public DuplicateStrategy? DuplicateStrategy { get; init; }
+	public DuplicateStrategy DuplicateStrategy { get; init; }
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
 	public string[]? Tags { get; init; }

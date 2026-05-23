@@ -140,6 +140,18 @@ public static class GeneratorTestHelper
 			"AssemblyDefaults",
 
 			"RegisterServicesMethods",
+
+			"RegisterScoped",
+			"RegisterScoped`1",
+			"RegisterScoped`2",
+
+			"RegisterSingleton",
+			"RegisterSingleton`1",
+			"RegisterSingleton`2",
+
+			"RegisterTransient",
+			"RegisterTransient`1",
+			"RegisterTransient`2",
 		};
 
 	private static void AssertSteps(

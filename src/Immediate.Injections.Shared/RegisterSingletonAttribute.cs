@@ -6,6 +6,9 @@ namespace Immediate.Injections.Shared;
 ///		Attribute to indicate the target class should be registered for dependency injection
 ///		as a singleton implementation for services as described by <see cref="RegistrationStrategy"/>.
 /// </summary>
+/// <remarks>
+///		If the target class is generic, then it will be registered as an open generic.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class RegisterSingletonAttribute : Attribute
 {
@@ -35,7 +38,7 @@ public sealed class RegisterSingletonAttribute : Attribute
 	///			<item>Otherwise, default is <see cref="DuplicateStrategy.Append"/>.</item>
 	///		</list>
 	/// </remarks>
-	public DuplicateStrategy? DuplicateStrategy { get; init; }
+	public DuplicateStrategy DuplicateStrategy { get; init; }
 
 	/// <summary>
 	///		The <see cref="Shared.RegistrationStrategy"/> to configure which services will be
@@ -48,7 +51,7 @@ public sealed class RegisterSingletonAttribute : Attribute
 	///			<item>Otherwise, default is <see cref="RegistrationStrategy.Self"/>.</item>
 	///		</list>
 	/// </remarks>
-	public RegistrationStrategy? RegistrationStrategy { get; init; }
+	public RegistrationStrategy RegistrationStrategy { get; init; }
 
 	/// <summary>
 	///		An optional list of tags which can be used to filter the generated registrations at runtime.

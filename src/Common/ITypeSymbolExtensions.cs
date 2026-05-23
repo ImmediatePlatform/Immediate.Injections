@@ -27,6 +27,18 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsDependencyInjection: true,
 			};
 
+		public bool IsIServiceProvider =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "IServiceProvider",
+				ContainingNamespace:
+				{
+					Name: "System",
+					ContainingNamespace.IsGlobalNamespace: true,
+				},
+			};
+
 		public bool IsReadOnlySpanString =>
 			typeSymbol is INamedTypeSymbol
 			{
@@ -53,6 +65,26 @@ internal static class ITypeSymbolExtensions
 				Name: "RegisterServicesAttribute",
 				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
+	}
+
+	extension(INamedTypeSymbol typeSymbol)
+	{
+		public bool IsValidFactoryMethod(string? factory, bool isKeyed)
+		{
+			if (factory is null)
+				return true;
+
+			return typeSymbol.GetMembers()
+				.Where(m => m is { IsStatic: true, Kind: SymbolKind.Method })
+				.Where(m => string.Equals(m.Name, factory, StringComparison.Ordinal))
+				.Cast<IMethodSymbol>()
+				.Where(ims => SymbolEqualityComparer.Default.Equals(ims.ReturnType, typeSymbol))
+				.Any(
+					ims => isKeyed
+						? ims is { Parameters: [{ Type.IsIServiceProvider: true }, { Type.SpecialType: SpecialType.System_Object }] }
+						: ims is { Parameters: [{ Type.IsIServiceProvider: true }] }
+				);
+		}
 	}
 
 	extension(INamespaceSymbol namespaceSymbol)

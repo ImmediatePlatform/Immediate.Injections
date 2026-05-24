@@ -23,5 +23,10 @@ public sealed class RegisterSingletonAttribute<TService> : Attribute
 	///		When <see langword="true" />, generate proxy method for the registered instance 
 	///		of the target class.
 	/// </summary>
+	/// <remarks>
+	///		This proxy registration does not generate a separate registration for the target
+	///		class. This property is meant to be used in conjunction with other applications
+	///		that actually register the implementation.
+	/// </remarks>
 	public bool UseProxy { get; init; }
 }

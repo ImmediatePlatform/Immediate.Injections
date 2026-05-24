@@ -128,7 +128,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 				(node, _) => node is ClassDeclarationSyntax,
 				TransformRegisterClass1
 			)
-			.WhereNotNull()
+			.SelectMany((x, _) => x)
 			.Collect()
 			.WithTrackingName($"Register{lifetime}`1");
 
@@ -149,7 +149,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 				(node, _) => node is ClassDeclarationSyntax,
 				TransformRegisterClass2
 			)
-			.WhereNotNull()
+			.SelectMany((x, _) => x)
 			.Collect()
 			.WithTrackingName($"Register{lifetime}`2");
 

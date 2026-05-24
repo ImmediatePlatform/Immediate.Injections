@@ -1,22 +1,22 @@
 namespace Immediate.Injections.Tests.GeneratorTests;
 
-public sealed class RegisterClass_TService_TImplementation_Tests
+public sealed class RegisterClass_TService_Tests
 {
 	[Theory]
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task ValidRegisterXxx_TService_TImplementation_IsRegistered(string lifetime)
+	public async Task ValidRegisterXxx_TService_IsRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>]
-			public class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>]
+			public class Service : IService
 			{
 			}
 			"""
@@ -25,7 +25,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -45,8 +45,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			[Register{{lifetime}}<Service<string>, Service<string>>]
-			public class Service<T>
+			[Register{{lifetime}}<Service>]
+			public class Service
 			{
 			}
 			"""
@@ -55,7 +55,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -68,7 +68,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task NonGenericRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
+	public async Task IncompatibleCastRegisterXxx_TService_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -77,7 +77,38 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}<IService, Service>]
+			[Register{{lifetime}}<IService>]
+			public class Service
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_InvalidFactory(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService;
+
+			[Register{{lifetime}}<IService>(Factory = "Test")]
 			public class Service : IService
 			{
 			}
@@ -99,102 +130,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task DifferentTargetRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService<T>;
-
-			public class Dummy<T> : IService<T>;
-
-			[Register{{lifetime}}<IService<string>, Dummy<string>>]
-			public class Service<T> : IService<T>
-			{
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await Verify(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task IncompatibleCastRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService<T>;
-
-			[Register{{lifetime}}<IService<string>, Service<string>>]
-			public class Service<T>
-			{
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await Verify(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_InvalidFactory(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService<T>;
-
-			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "Test")]
-			public class Service<T> : IService<T>
-			{
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await Verify(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidFactory(string lifetime)
+	public async Task RegisterXxx_TService_ValidFactory(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -203,12 +139,12 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "BuildService")]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(Factory = "BuildService")]
+			public sealed class Service : IService
 			{
-				public static Service<T> BuildService(IServiceProvider sp)
+				public static Service BuildService(IServiceProvider sp)
 				{
 					return new();
 				}
@@ -219,7 +155,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -232,7 +168,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidKeyedFactory(string lifetime)
+	public async Task RegisterXxx_TService_ValidKeyedFactory(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -241,12 +177,12 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(ServiceKey = "Key", Factory = "BuildService")]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(ServiceKey = "Key", Factory = "BuildService")]
+			public sealed class Service : IService
 			{
-				public static Service<T> BuildService(IServiceProvider sp, object key)
+				public static Service BuildService(IServiceProvider sp, object key)
 				{
 					return new();
 				}
@@ -257,7 +193,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -270,17 +206,17 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidKey(string lifetime)
+	public async Task RegisterXxx_TService_ValidKey(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(ServiceKey = "Key")]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(ServiceKey = "Key")]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -289,7 +225,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -302,17 +238,17 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidTags(string lifetime)
+	public async Task RegisterXxx_TService_ValidTags(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(Tags = ["abc", "def"])]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(Tags = ["abc", "def"])]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -321,7 +257,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -334,17 +270,17 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Append(string lifetime)
+	public async Task RegisterXxx_TService_Append(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(DuplicateStrategy = DuplicateStrategy.Append)]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(DuplicateStrategy = DuplicateStrategy.Append)]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -353,7 +289,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -366,17 +302,17 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Replace(string lifetime)
+	public async Task RegisterXxx_TService_Replace(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(DuplicateStrategy = DuplicateStrategy.Replace)]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(DuplicateStrategy = DuplicateStrategy.Replace)]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -385,7 +321,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -398,17 +334,17 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Skip(string lifetime)
+	public async Task RegisterXxx_TService_Skip(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(DuplicateStrategy = DuplicateStrategy.Skip)]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>(DuplicateStrategy = DuplicateStrategy.Skip)]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -417,7 +353,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -430,7 +366,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblyAppend(string lifetime)
+	public async Task RegisterXxx_TService_AssemblyAppend(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -439,10 +375,10 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Append)]
 
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -451,7 +387,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -464,7 +400,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblyReplace(string lifetime)
+	public async Task RegisterXxx_TService_AssemblyReplace(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -473,10 +409,10 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Replace)]
 
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -485,7 +421,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -498,7 +434,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblySkip(string lifetime)
+	public async Task RegisterXxx_TService_AssemblySkip(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -507,10 +443,10 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Skip)]
 
-			public interface IService<T>;
+			public interface IService;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>]
-			public sealed class Service<T> : IService<T>
+			[Register{{lifetime}}<IService>]
+			public sealed class Service : IService
 			{
 			}
 			"""
@@ -519,7 +455,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -529,21 +465,19 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Fact]
-	public async Task ValidRegisterXxx_TService_TImplementation_IsRegisteredMultipleTimes()
+	public async Task ValidRegisterXxx_TService_IsRegisteredMultipleTimes()
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService1<T>;
-			public interface IService2<T>;
+			public interface IService1;
+			public interface IService2;
 
-			[RegisterScoped<IService1<int>, Service<int>>]
-			[RegisterScoped<IService1<string>, Service<string>>]
-			[RegisterSingleton<IService2<int>, Service<int>>]
-			[RegisterSingleton<IService2<string>, Service<string>>]
-			public class Service<T> : IService1<T>, IService2<T>
+			[RegisterScoped<IService1>]
+			[RegisterSingleton<IService2>]
+			public class Service : IService1, IService2
 			{
 			}
 			"""
@@ -552,8 +486,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`2.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterSingleton`2.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`1.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterSingleton`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);

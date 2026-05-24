@@ -527,4 +527,38 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		_ = await Verify(result)
 			.UseParameters(lifetime);
 	}
+
+	[Fact]
+	public async Task ValidRegisterXxx_TService_TImplementation_IsRegisteredMultipleTimes()
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService1<T>;
+			public interface IService2<T>;
+
+			[RegisterScoped<IService1<int>, Service<int>>]
+			[RegisterScoped<IService1<string>, Service<string>>]
+			[RegisterSingleton<IService2<int>, Service<int>>]
+			[RegisterSingleton<IService2<string>, Service<string>>]
+			public class Service<T> : IService1<T>, IService2<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`2.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterSingleton`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result);
+	}
+
 }

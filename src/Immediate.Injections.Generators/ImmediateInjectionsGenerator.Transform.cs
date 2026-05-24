@@ -44,104 +44,114 @@ public sealed partial class ImmediateInjectionsGenerator
 		return new([]);
 	}
 
-	private static RegisterClass? TransformRegisterClass1(GeneratorAttributeSyntaxContext context, CancellationToken token)
+	private static EquatableReadOnlyList<RegisterClass> TransformRegisterClass1(GeneratorAttributeSyntaxContext context, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();
 
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false } targetSymbol)
-			return null;
+			return new([]);
 
-		var attributeData = context.Attributes[0];
-		var arguments = attributeData.NamedArguments;
-
-		if (attributeData.AttributeClass is not
+		return context.Attributes
+			.Select(attributeData =>
 			{
-				TypeArguments:
-				[
-				INamedTypeSymbol serviceSymbol,
-				],
+				var arguments = attributeData.NamedArguments;
+
+				if (attributeData.AttributeClass is not
+					{
+						TypeArguments:
+						[
+						INamedTypeSymbol serviceSymbol,
+						],
+					})
+				{
+					return null;
+				}
+
+				if (
+					context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceSymbol) is not (
+					{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+					)
+				)
+				{
+					return null;
+				}
+
+				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
+				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
+				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
+
+				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
+					return null;
+
+				return new RegisterClass
+				{
+					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+					Implementation = targetSymbol.BuildImplementationArgument(factory),
+					Tags = tags,
+					ServiceKey = serviceKey,
+					Factory = factory,
+					DuplicateStrategy = duplicateStrategy,
+				};
 			})
-		{
-			return null;
-		}
-
-		if (
-			context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceSymbol) is not (
-			{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-			)
-		)
-		{
-			return null;
-		}
-
-		var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
-		var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
-		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
-		var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-
-		if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
-			return null;
-
-		return new RegisterClass
-		{
-			ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-			Implementation = targetSymbol.BuildImplementationArgument(factory),
-			Tags = tags,
-			ServiceKey = serviceKey,
-			Factory = factory,
-			DuplicateStrategy = duplicateStrategy,
-		};
+			.WhereNotNull()
+			.ToEquatableReadOnlyList();
 	}
 
-	private static RegisterClass? TransformRegisterClass2(GeneratorAttributeSyntaxContext context, CancellationToken token)
+	private static EquatableReadOnlyList<RegisterClass> TransformRegisterClass2(GeneratorAttributeSyntaxContext context, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();
 
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: true } targetSymbol)
-			return null;
+			return new([]);
 
-		var attributeData = context.Attributes[0];
-		var arguments = attributeData.NamedArguments;
-
-		if (attributeData.AttributeClass is not
+		return context.Attributes
+			.Select(attributeData =>
 			{
-				TypeArguments:
-				[
-				INamedTypeSymbol { IsGenericType: true } serviceSymbol,
-				INamedTypeSymbol { IsGenericType: true } implementationSymbol
-				],
-			}
-			|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol))
-		{
-			return null;
-		}
+				var arguments = attributeData.NamedArguments;
 
-		if (
-			context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol) is not (
-			{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-			)
-		)
-		{
-			return null;
-		}
+				if (attributeData.AttributeClass is not
+					{
+						TypeArguments:
+						[
+						INamedTypeSymbol { IsGenericType: true } serviceSymbol,
+						INamedTypeSymbol { IsGenericType: true } implementationSymbol
+						],
+					}
+					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol))
+				{
+					return null;
+				}
 
-		var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
-		var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
-		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
-		var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
+				if (
+					context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol) is not (
+					{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+					)
+				)
+				{
+					return null;
+				}
 
-		if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
-			return null;
+				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
+				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
+				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
 
-		return new RegisterClass
-		{
-			ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-			Implementation = implementationSymbol.BuildImplementationArgument(factory),
-			Tags = tags,
-			ServiceKey = serviceKey,
-			Factory = factory,
-			DuplicateStrategy = duplicateStrategy,
-		};
+				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
+					return null;
+
+				return new RegisterClass
+				{
+					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+					Implementation = implementationSymbol.BuildImplementationArgument(factory),
+					Tags = tags,
+					ServiceKey = serviceKey,
+					Factory = factory,
+					DuplicateStrategy = duplicateStrategy,
+				};
+			})
+			.WhereNotNull()
+			.ToEquatableReadOnlyList();
 	}
 }
 

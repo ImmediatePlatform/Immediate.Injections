@@ -1,9 +1,8 @@
-using Microsoft.CodeAnalysis.CSharp;
-
 namespace Immediate.Injections.Tests.GeneratorTests;
 
 public sealed class RegisterServicesTests
 {
+#if NET8_0
 	[Fact]
 	public async Task ValidRegisterServicesMethodWhenLangVersionIs12()
 	{
@@ -20,7 +19,7 @@ public sealed class RegisterServicesTests
 				}
 			}
 			""",
-			languageVersion: LanguageVersion.CSharp12
+			languageVersion: Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12
 		);
 
 		Assert.Equal(
@@ -33,6 +32,7 @@ public sealed class RegisterServicesTests
 
 		_ = await Verify(result);
 	}
+#endif
 
 	[Fact]
 	public async Task ValidRegisterServicesMethodIsCalled1()

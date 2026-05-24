@@ -9,6 +9,7 @@ public sealed partial class ImmediateInjectionsGenerator
 {
 	private static readonly Template ServiceCollectionExtensionsTemplate = GetTemplate("ServiceCollectionExtensions");
 	private static readonly Template RegisterServicesTemplate = GetTemplate("RegisterServices");
+	private static readonly Template RegisterClassesTemplate = GetTemplate("RegisterClasses");
 
 	private static void RenderServiceCollectionExtensions(
 		IncrementalGeneratorInitializationContext context,
@@ -61,6 +62,70 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				context.CancellationToken.ThrowIfCancellationRequested();
 				context.AddSource("II.RegisterServicesMethods.g.cs", source);
+			}
+		);
+	}
+
+	private static void RenderRegisterClasses(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		IncrementalValueProvider<ImmutableArray<RegisterClass>> classes,
+		string lifetime,
+		int arity
+	)
+	{
+		context.RegisterSourceOutput(
+			classes.Combine(assemblyDefaults),
+			(context, x) =>
+			{
+				var (classes, assemblyDefaults) = x;
+
+				if (classes.Length == 0)
+					return;
+
+				var source = RegisterClassesTemplate
+					.Render(new
+					{
+						assemblyDefaults.AssemblyName,
+						assemblyDefaults.RootNamespace,
+
+						Arity = arity,
+						Lifetime = lifetime,
+
+						Classes = classes
+							.Select(c => new
+							{
+								c.Implementation,
+								c.ServiceType,
+								c.ServiceKey,
+								c.Tags,
+
+								ServiceMethod = (c.DuplicateStrategy ?? assemblyDefaults.DuplicateStrategy ?? "Append") switch
+								{
+									"Append" => "Add",
+									"Replace" => "Replace",
+									"Skip" => "TryAdd",
+									_ => "",
+								},
+
+								DescriptorType = (lifetime, c.ServiceKey) switch
+								{
+									("Scoped", { }) => "KeyedScoped",
+									("Scoped", _) => "Scoped",
+									("Singleton", { }) => "KeyedSingleton",
+									("Singleton", _) => "Singleton",
+									("Transient", { }) => "KeyedTransient",
+									("Transient", _) => "Transient",
+									_ => "",
+								},
+							}),
+					});
+
+				context.CancellationToken.ThrowIfCancellationRequested();
+				context.AddSource(
+					FormattableString.Invariant($"II.Register{lifetime}`{arity}.g.cs"),
+					source
+				);
 			}
 		);
 	}

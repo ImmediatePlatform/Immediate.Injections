@@ -425,4 +425,106 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 		_ = await Verify(result)
 			.UseParameters(lifetime);
 	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_AssemblyAppend(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Append)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_AssemblyReplace(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Replace)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_AssemblySkip(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Skip)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
 }

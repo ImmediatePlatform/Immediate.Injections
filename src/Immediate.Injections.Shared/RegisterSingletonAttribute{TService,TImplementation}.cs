@@ -18,4 +18,7 @@ public sealed class RegisterSingletonAttribute<TService, TImplementation> : Attr
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
 	public string[]? Tags { get; init; }
+
+	/// <inheritdoc cref="RegisterSingletonAttribute{TService}.UseProxy" />
+	public bool UseProxy { get; init; }
 }

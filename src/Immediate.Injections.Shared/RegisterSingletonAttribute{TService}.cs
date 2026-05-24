@@ -18,4 +18,10 @@ public sealed class RegisterSingletonAttribute<TService> : Attribute
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
 	public string[]? Tags { get; init; }
+
+	/// <summary>
+	///		When <see langword="true" />, generate proxy method for the registered instance 
+	///		of the target class.
+	/// </summary>
+	public bool UseProxy { get; init; }
 }

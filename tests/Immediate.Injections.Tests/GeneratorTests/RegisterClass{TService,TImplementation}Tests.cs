@@ -194,6 +194,111 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	[InlineData("Scoped")]
 	[InlineData("Singleton")]
 	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_InvalidFactoryWithUseProxy(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "BuildService", UseProxy = true)]
+			public sealed class Service<T> : IService<T>
+			{
+				public static Service<T> BuildService(IServiceProvider sp)
+				{
+					return new();
+				}
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_UseProxy(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>(UseProxy = true)]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
+	public async Task RegisterXxx_TService_TImplementation_KeyedUseProxy(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>(ServiceKey = "Key", UseProxy = true)]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await Verify(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[InlineData("Scoped")]
+	[InlineData("Singleton")]
+	[InlineData("Transient")]
 	public async Task RegisterXxx_TService_TImplementation_ValidFactory(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(

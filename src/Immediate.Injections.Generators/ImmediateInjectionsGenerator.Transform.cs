@@ -80,6 +80,10 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
+				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+
+				if (factory != null && useProxy)
+					return null;
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;
@@ -87,7 +91,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-					Implementation = targetSymbol.BuildImplementationArgument(factory),
+					Implementation = targetSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
 					Factory = factory,
@@ -136,6 +140,10 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
+				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+
+				if (factory != null && useProxy)
+					return null;
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;
@@ -143,7 +151,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-					Implementation = implementationSymbol.BuildImplementationArgument(factory),
+					Implementation = implementationSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
 					Factory = factory,
@@ -188,15 +196,19 @@ file static class Extensions
 
 	public static string BuildImplementationArgument(
 		this INamedTypeSymbol typeSymbol,
+		bool useProxy,
+		bool isKeyed,
 		string? factory
 	)
 	{
 		var type = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-		return factory switch
+		return (useProxy, isKeyed, factory) switch
 		{
-			{ } => $"{type}.{factory}",
-			null => $"typeof({type})",
+			(true, true, _) => $"global::Microsoft.Extensions.DependencyInjection.ServiceProviderKeyedServiceExtensions.GetRequiredKeyedService<{type}>",
+			(true, false, _) => $"global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<{type}>",
+			(false, _, { }) => $"{type}.{factory}",
+			(false, _, null) => $"typeof({type})",
 		};
 	}
 }

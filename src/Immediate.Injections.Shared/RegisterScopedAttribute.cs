@@ -10,6 +10,9 @@ namespace Immediate.Injections.Shared;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class RegisterScopedAttribute : Attribute
 {
+	/// <inheritdoc cref="RegisterSingletonAttribute.ServiceType" />
+	public Type? ServiceType { get; init; }
+
 	/// <inheritdoc cref="RegisterSingletonAttribute.ServiceKey" />
 	public object? ServiceKey { get; init; }
 
@@ -21,6 +24,9 @@ public sealed class RegisterScopedAttribute : Attribute
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.RegistrationStrategy" />
 	public RegistrationStrategy RegistrationStrategy { get; init; }
+
+	/// <inheritdoc cref="RegisterSingletonAttribute.UseProxyFactory" />
+	public bool UseProxyFactory { get; init; }
 
 	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
 	public string[]? Tags { get; init; }

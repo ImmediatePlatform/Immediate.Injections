@@ -19,6 +19,6 @@ public sealed class RegisterScopedAttribute<TService, TImplementation> : Attribu
 	/// <inheritdoc cref="RegisterSingletonAttribute.Tags" />
 	public string[]? Tags { get; init; }
 
-	/// <inheritdoc cref="RegisterSingletonAttribute{TService}.UseProxy" />
-	public bool UseProxy { get; init; }
+	/// <inheritdoc cref="RegisterSingletonAttribute{TService}.UseProxyFactory" />
+	public bool UseProxyFactory { get; init; }
 }

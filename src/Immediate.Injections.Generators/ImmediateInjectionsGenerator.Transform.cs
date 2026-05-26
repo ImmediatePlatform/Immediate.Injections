@@ -54,6 +54,8 @@ public sealed partial class ImmediateInjectionsGenerator
 		return context.Attributes
 			.Select(attributeData =>
 			{
+				token.ThrowIfCancellationRequested();
+
 				var arguments = attributeData.NamedArguments;
 
 				if (attributeData.AttributeClass is not
@@ -80,7 +82,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 				if (factory != null && useProxy)
 					return null;
@@ -94,7 +96,6 @@ public sealed partial class ImmediateInjectionsGenerator
 					Implementation = targetSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
-					Factory = factory,
 					DuplicateStrategy = duplicateStrategy,
 				};
 			})
@@ -112,6 +113,8 @@ public sealed partial class ImmediateInjectionsGenerator
 		return context.Attributes
 			.Select(attributeData =>
 			{
+				token.ThrowIfCancellationRequested();
+
 				var arguments = attributeData.NamedArguments;
 
 				if (attributeData.AttributeClass is not
@@ -140,7 +143,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 				if (factory != null && useProxy)
 					return null;
@@ -154,7 +157,6 @@ public sealed partial class ImmediateInjectionsGenerator
 					Implementation = implementationSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
-					Factory = factory,
 					DuplicateStrategy = duplicateStrategy,
 				};
 			})

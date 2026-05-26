@@ -207,7 +207,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			public interface IService<T>;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "BuildService", UseProxy = true)]
+			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "BuildService", UseProxyFactory = true)]
 			public sealed class Service<T> : IService<T>
 			{
 				public static Service<T> BuildService(IServiceProvider sp)
@@ -244,7 +244,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			public interface IService<T>;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(UseProxy = true)]
+			[Register{{lifetime}}<IService<string>, Service<string>>(UseProxyFactory = true)]
 			public sealed class Service<T> : IService<T>
 			{
 			}
@@ -278,7 +278,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			
 			public interface IService<T>;
 
-			[Register{{lifetime}}<IService<string>, Service<string>>(ServiceKey = "Key", UseProxy = true)]
+			[Register{{lifetime}}<IService<string>, Service<string>>(ServiceKey = "Key", UseProxyFactory = true)]
 			public sealed class Service<T> : IService<T>
 			{
 			}

@@ -1,3 +1,5 @@
+using static Immediate.Injections.Tests.Utility;
+
 namespace Immediate.Injections.Tests.GeneratorTests;
 
 public sealed class RegisterClass_TService_Tests
@@ -30,7 +32,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -60,7 +62,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -91,7 +93,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -122,7 +124,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -159,7 +161,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -193,7 +195,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -227,7 +229,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -265,7 +267,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -303,7 +305,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -335,7 +337,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -367,7 +369,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -399,7 +401,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -431,7 +433,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -463,7 +465,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -497,7 +499,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -531,7 +533,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -565,7 +567,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result)
+		_ = await VerifyIgnoreCommonFile(result)
 			.UseParameters(lifetime);
 	}
 
@@ -597,7 +599,7 @@ public sealed class RegisterClass_TService_Tests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result);
+		_ = await VerifyIgnoreCommonFile(result);
 	}
 
 }

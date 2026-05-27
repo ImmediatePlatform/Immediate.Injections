@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Immediate.Injections.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
@@ -36,4 +37,8 @@ public static class Utility
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 	];
+
+	public static SettingsTask VerifyIgnoreCommonFile(GeneratorDriverRunResult result, [CallerFilePath] string sourceFile = "") =>
+		Verify(result, sourceFile: sourceFile)
+			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "II.ServiceCollectionExtensions.g.cs");
 }

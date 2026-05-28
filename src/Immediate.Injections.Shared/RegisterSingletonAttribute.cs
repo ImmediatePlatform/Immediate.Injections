@@ -51,8 +51,9 @@ public sealed class RegisterSingletonAttribute : Attribute
 	/// <remarks>
 	///		<list type="bullet">
 	///			<item>If provided, this value is used.</item>
-	///			<item>If not provided, the assembly default set by <see cref="RegistrationDefaultsAttribute.RegistrationStrategy"/> is used.</item>
-	///			<item>Otherwise, default is <see cref="RegistrationStrategy.Self"/>.</item>
+	///			<item>If not provided, and <see cref="ServiceType"/> is provided, then <see cref="RegistrationStrategy.None"/> will be used.</item>
+	///			<item>Otherwise, the assembly default set by <see cref="RegistrationDefaultsAttribute.RegistrationStrategy"/> will be used.</item>
+	///			<item>Finally, final default is that <see cref="RegistrationStrategy.None"/> will be used.</item>
 	///		</list>
 	/// </remarks>
 	public RegistrationStrategy RegistrationStrategy { get; init; }

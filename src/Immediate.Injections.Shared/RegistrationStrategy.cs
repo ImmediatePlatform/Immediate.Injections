@@ -6,7 +6,7 @@ namespace Immediate.Injections.Shared;
 public enum RegistrationStrategy
 {
 	/// <summary>
-	///	    Registers the attributed concrete type as the service provided in <c>ServiceType</c>; or the targetted class
+	///	    Registers the attributed concrete type as the service provided in <c>ServiceType</c>; or the targeted class
 	///	    otherwise.
 	/// </summary>
 	/// <remarks>

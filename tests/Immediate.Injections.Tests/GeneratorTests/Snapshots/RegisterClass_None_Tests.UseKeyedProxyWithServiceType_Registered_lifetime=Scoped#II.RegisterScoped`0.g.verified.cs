@@ -13,7 +13,7 @@ public static partial class RegistrationServiceCollectionExtensions
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.KeyedScoped(
 				typeof(global::IService),
 				"Key",
-				typeof(global::Service)
+				global::Microsoft.Extensions.DependencyInjection.ServiceProviderKeyedServiceExtensions.GetRequiredKeyedService<global::Service>
 			)
 		);
 

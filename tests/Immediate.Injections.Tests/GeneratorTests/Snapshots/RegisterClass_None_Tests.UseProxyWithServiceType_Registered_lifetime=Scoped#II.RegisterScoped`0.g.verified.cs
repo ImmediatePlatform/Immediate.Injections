@@ -12,7 +12,7 @@ public static partial class RegistrationServiceCollectionExtensions
 			services,
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Scoped(
 				typeof(global::IService),
-				typeof(global::Service)
+				global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Service>
 			)
 		);
 

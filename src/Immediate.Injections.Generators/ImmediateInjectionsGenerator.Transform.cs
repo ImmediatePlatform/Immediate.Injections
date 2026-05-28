@@ -90,7 +90,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						return [];
 					}
 
-					return [BuildRegistration(serviceType ?? targetSymbol, useProxy: false, factory: factory)];
+					return [BuildRegistration(serviceType ?? targetSymbol, useProxy: useProxy, factory: factory)];
 				}
 
 				// service type is only valid if we aren't specifying a registration strategy
@@ -99,7 +99,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				if (registrationStrategy is "Self")
 				{
-					// what does it mean to proxy to the concrete when 
+					// what does it mean to proxy to the concrete when targetting self?
 					if (useProxy)
 						return [];
 
@@ -108,7 +108,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				if (registrationStrategy is "ImplementedInterfaces")
 				{
-					// what does it mean to proxy to the concrete, but also provide a factory when there is no self
+					// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
 					if (useProxy && factory != null)
 						return [];
 
@@ -117,7 +117,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						.Select(i => BuildRegistration(i, useProxy: false, factory: factory));
 				}
 
-				if (registrationStrategy is "SelfWithImplementedInterfaces")
+				if (registrationStrategy is "SelfAndImplementedInterfaces")
 				{
 					return
 					[
@@ -140,7 +140,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					{
 						ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
 						Implementation = targetSymbol.BuildImplementationArgument(
-							useProxy: string.Equals(registrationStrategy, "UseProxyFactory", StringComparison.Ordinal),
+							useProxy: useProxy,
 							isKeyed: serviceKey is { },
 							factory: factory
 						),

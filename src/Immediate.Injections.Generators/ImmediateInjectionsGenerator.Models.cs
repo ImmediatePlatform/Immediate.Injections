@@ -30,7 +30,6 @@ public sealed partial class ImmediateInjectionsGenerator
 		public required string Implementation { get; init; }
 		public required string? Tags { get; init; }
 		public required string? ServiceKey { get; init; }
-		public required string? Factory { get; init; }
 		public required string? DuplicateStrategy { get; init; }
 	}
 }

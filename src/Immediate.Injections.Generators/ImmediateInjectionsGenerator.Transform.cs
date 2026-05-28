@@ -41,7 +41,116 @@ public sealed partial class ImmediateInjectionsGenerator
 	private static EquatableReadOnlyList<RegisterClass> TransformRegisterClass0(GeneratorAttributeSyntaxContext context, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();
-		return new([]);
+
+		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
+			return new([]);
+
+		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
+		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
+		var defaultRegistration = defaultsAttribute?.NamedArguments.GetEnumArgumentValue("RegistrationStrategy") ?? "None";
+
+		return context.Attributes
+			.SelectMany(attributeData =>
+			{
+				token.ThrowIfCancellationRequested();
+
+				var arguments = attributeData.NamedArguments;
+
+				var serviceType = arguments.GetArgumentValue("ServiceType")?.GetArgumentType();
+				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
+				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
+				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
+				var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType != null ? "None" : defaultRegistration);
+				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+
+				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
+					return [];
+
+				if (registrationStrategy is "None")
+				{
+					if (
+						// if user wants to proxy
+						useProxy
+						// then either they don't have a factory (because proxy _is_ a factory)
+						// or they are trying to register target class (can't proxy self -> self)
+						&& (factory is { } || serviceType is null)
+					)
+					{
+						return [];
+					}
+
+					if (
+						serviceType != null
+						&& context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
+						{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+						)
+					)
+					{
+						return [];
+					}
+
+					return [BuildRegistration(serviceType ?? targetSymbol, useProxy: useProxy, factory: factory)];
+				}
+
+				// service type is only valid if we aren't specifying a registration strategy
+				if (serviceType != null)
+					return [];
+
+				if (registrationStrategy is "Self")
+				{
+					// what does it mean to proxy to the concrete when targetting self?
+					if (useProxy)
+						return [];
+
+					return [BuildRegistration(targetSymbol, useProxy: false, factory: factory)];
+				}
+
+				if (registrationStrategy is "ImplementedInterfaces")
+				{
+					// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
+					if (useProxy && factory != null)
+						return [];
+
+					return targetSymbol
+						.AllInterfaces
+						.Select(i => BuildRegistration(i, useProxy: false, factory: factory));
+				}
+
+				if (registrationStrategy is "SelfAndImplementedInterfaces")
+				{
+					return
+					[
+						BuildRegistration(targetSymbol, useProxy: false, factory: factory),
+						..targetSymbol
+							.AllInterfaces
+							.Select(i => BuildRegistration(i, useProxy: false, factory: factory)),
+					];
+				}
+
+				return [];
+
+				RegisterClass BuildRegistration(
+					INamedTypeSymbol serviceSymbol,
+					bool useProxy,
+					string? factory
+				)
+				{
+					return new RegisterClass
+					{
+						ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+						Implementation = targetSymbol.BuildImplementationArgument(
+							useProxy: useProxy,
+							isKeyed: serviceKey is { },
+							factory: factory
+						),
+						Tags = tags,
+						ServiceKey = serviceKey,
+						DuplicateStrategy = duplicateStrategy,
+					};
+				}
+			})
+			.ToEquatableReadOnlyList();
 	}
 
 	private static EquatableReadOnlyList<RegisterClass> TransformRegisterClass1(GeneratorAttributeSyntaxContext context, CancellationToken token)
@@ -54,6 +163,8 @@ public sealed partial class ImmediateInjectionsGenerator
 		return context.Attributes
 			.Select(attributeData =>
 			{
+				token.ThrowIfCancellationRequested();
+
 				var arguments = attributeData.NamedArguments;
 
 				if (attributeData.AttributeClass is not
@@ -80,7 +191,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 				if (factory != null && useProxy)
 					return null;
@@ -94,7 +205,6 @@ public sealed partial class ImmediateInjectionsGenerator
 					Implementation = targetSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
-					Factory = factory,
 					DuplicateStrategy = duplicateStrategy,
 				};
 			})
@@ -112,6 +222,8 @@ public sealed partial class ImmediateInjectionsGenerator
 		return context.Attributes
 			.Select(attributeData =>
 			{
+				token.ThrowIfCancellationRequested();
+
 				var arguments = attributeData.NamedArguments;
 
 				if (attributeData.AttributeClass is not
@@ -140,7 +252,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxy")?.Value is true;
+				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 				if (factory != null && useProxy)
 					return null;
@@ -154,7 +266,6 @@ public sealed partial class ImmediateInjectionsGenerator
 					Implementation = implementationSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
-					Factory = factory,
 					DuplicateStrategy = duplicateStrategy,
 				};
 			})
@@ -192,6 +303,14 @@ file static class Extensions
 			return null;
 
 		return string.Join(", ", constant.Values.Select(tc => tc.ToCSharpString()));
+	}
+
+	public static INamedTypeSymbol? GetArgumentType(this TypedConstant constant)
+	{
+		if (constant.Kind != TypedConstantKind.Type)
+			return null;
+
+		return constant.Value as INamedTypeSymbol;
 	}
 
 	public static string BuildImplementationArgument(

@@ -65,6 +65,14 @@ internal static class ITypeSymbolExtensions
 				Name: "RegisterServicesAttribute",
 				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
+
+		public bool IsRegistrationDefaultsAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "RegistrationDefaultsAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
 	}
 
 	extension(INamedTypeSymbol typeSymbol)

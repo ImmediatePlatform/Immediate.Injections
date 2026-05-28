@@ -38,6 +38,8 @@ public static class Utility
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 	];
 
+	public static TheoryData<string> Lifetimes { get; } = ["Scoped", "Singleton", "Transient"];
+
 	public static SettingsTask VerifyIgnoreCommonFile(GeneratorDriverRunResult result, [CallerFilePath] string sourceFile = "") =>
 		Verify(result, sourceFile: sourceFile)
 			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "II.ServiceCollectionExtensions.g.cs");

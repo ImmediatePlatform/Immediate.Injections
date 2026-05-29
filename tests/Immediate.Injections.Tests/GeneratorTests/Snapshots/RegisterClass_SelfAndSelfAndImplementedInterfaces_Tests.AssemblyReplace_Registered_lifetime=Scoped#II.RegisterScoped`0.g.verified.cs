@@ -8,11 +8,18 @@ public static partial class RegistrationServiceCollectionExtensions
 {
 	static partial void RegisterScoped(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags)
 	{
-		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Add(
+		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Replace(
+			services,
+			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Scoped(
+				typeof(global::Service),
+				typeof(global::Service)
+			)
+		);
+		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Replace(
 			services,
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Scoped(
 				typeof(global::IService),
-				global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Service>
+				typeof(global::Service)
 			)
 		);
 

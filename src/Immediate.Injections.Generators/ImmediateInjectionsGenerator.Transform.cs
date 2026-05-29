@@ -114,7 +114,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 					return targetSymbol
 						.AllInterfaces
-						.Select(i => BuildRegistration(i, useProxy: false, factory: factory));
+						.Select(i => BuildRegistration(i, useProxy: useProxy, factory: factory));
 				}
 
 				if (registrationStrategy is "SelfAndImplementedInterfaces")
@@ -124,7 +124,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						BuildRegistration(targetSymbol, useProxy: false, factory: factory),
 						..targetSymbol
 							.AllInterfaces
-							.Select(i => BuildRegistration(i, useProxy: false, factory: factory)),
+							.Select(i => BuildRegistration(i, useProxy: useProxy, factory: factory)),
 					];
 				}
 

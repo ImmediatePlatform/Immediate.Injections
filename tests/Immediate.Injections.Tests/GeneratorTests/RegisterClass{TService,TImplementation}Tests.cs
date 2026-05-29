@@ -5,10 +5,8 @@ namespace Immediate.Injections.Tests.GeneratorTests;
 public sealed class RegisterClass_TService_TImplementation_Tests
 {
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task ValidRegisterXxx_TService_TImplementation_IsRegistered(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task IsRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -37,10 +35,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task ValidRegisterXxx_TService_TService_IsRegistered(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task TService_TService_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -67,10 +63,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task NonGenericRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task NonGeneric_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -98,10 +92,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task DifferentTargetRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task DifferentTarget_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -131,10 +123,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task IncompatibleCastRegisterXxx_TService_TImplementation_IsNotRegistered(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task IncompatibleCast_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -162,10 +152,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_InvalidFactory(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task InvalidFactory_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -193,10 +181,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_InvalidFactoryWithUseProxy(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task InvalidFactoryWithUseProxy_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -230,10 +216,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_UseProxy(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task UseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -264,10 +248,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_KeyedUseProxy(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task KeyedUseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -298,10 +280,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidFactory(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ValidFactory_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -336,10 +316,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidKeyedFactory(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ValidKeyedFactory_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -374,10 +352,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidKey(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ValidKey_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -406,10 +382,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_ValidTags(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ValidTags_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -438,10 +412,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Append(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task Append_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -470,10 +442,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Replace(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task Replace_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -502,10 +472,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_Skip(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task Skip_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -534,10 +502,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblyAppend(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblyAppend_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -568,10 +534,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblyReplace(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblyReplace_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -602,10 +566,8 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Theory]
-	[InlineData("Scoped")]
-	[InlineData("Singleton")]
-	[InlineData("Transient")]
-	public async Task RegisterXxx_TService_TImplementation_AssemblySkip(string lifetime)
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblySkip_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -636,7 +598,7 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 	}
 
 	[Fact]
-	public async Task ValidRegisterXxx_TService_TImplementation_IsRegisteredMultipleTimes()
+	public async Task MultipleAttributes_Registered()
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			"""

@@ -10,9 +10,18 @@ public static partial class RegistrationServiceCollectionExtensions
 	{
 		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Add(
 			services,
-			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Scoped(
+			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.KeyedScoped(
+				typeof(global::Service),
+				"Key",
+				global::Service.BuildService
+			)
+		);
+		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Add(
+			services,
+			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.KeyedScoped(
 				typeof(global::IService),
-				global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Service>
+				"Key",
+				global::Service.BuildService
 			)
 		);
 

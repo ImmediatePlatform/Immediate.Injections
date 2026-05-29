@@ -11,8 +11,15 @@ public static partial class RegistrationServiceCollectionExtensions
 		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Add(
 			services,
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton(
+				typeof(global::Service),
+				typeof(global::Service)
+			)
+		);
+		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.Add(
+			services,
+			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton(
 				typeof(global::IService),
-				global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Service>
+				typeof(global::Service)
 			)
 		);
 

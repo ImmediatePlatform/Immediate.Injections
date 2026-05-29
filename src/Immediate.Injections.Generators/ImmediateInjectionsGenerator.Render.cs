@@ -92,7 +92,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						Arity = arity,
 						Lifetime = lifetime,
 
-						Classes = classes
+						ClassesByTag = classes
 							.Select(c => new
 							{
 								c.Implementation,
@@ -118,7 +118,8 @@ public sealed partial class ImmediateInjectionsGenerator
 									("Transient", _) => "Transient",
 									_ => "",
 								},
-							}),
+							})
+							.GroupBy(c => c.Tags, StringComparer.Ordinal),
 					});
 
 				context.CancellationToken.ThrowIfCancellationRequested();

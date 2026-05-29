@@ -2,7 +2,7 @@ using static Immediate.Injections.Tests.Utility;
 
 namespace Immediate.Injections.Tests.GeneratorTests;
 
-public sealed class RegisterClass_Self_Tests
+public sealed class RegisterClass_ImplementedInterfaces_Tests
 {
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
@@ -13,10 +13,11 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService1;
+			public interface IService2;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self)]
-			public class Service : IService
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
+			public class Service : IService1, IService2
 			{
 			}
 			"""
@@ -43,12 +44,13 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.Self)]
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
 
-			public interface IService;
+			public interface IService1;
+			public interface IService2;
 
 			[Register{{lifetime}}]
-			public class Service : IService
+			public class Service : IService1, IService2
 			{
 			}
 			"""
@@ -75,7 +77,7 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.Self)]
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
 
 			public interface IService;
 
@@ -109,7 +111,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 			
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, ServiceType = typeof(Service))]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, ServiceType = typeof(Service))]
 			public class Service : IService
 			{
 			}
@@ -138,7 +140,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, Factory = "Test")]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Factory = "Test")]
 			public class Service : IService
 			{
 			}
@@ -158,7 +160,7 @@ public sealed class RegisterClass_Self_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task UseProxy_IsNotRegistered(string lifetime)
+	public async Task UseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -169,7 +171,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, UseProxyFactory = true)]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, UseProxyFactory = true)]
 			public sealed class Service : IService
 			{
 			}
@@ -179,6 +181,7 @@ public sealed class RegisterClass_Self_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -200,7 +203,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, Factory = "BuildService")]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Factory = "BuildService")]
 			public sealed class Service : IService
 			{
 				public static Service BuildService(IServiceProvider sp)
@@ -225,6 +228,41 @@ public sealed class RegisterClass_Self_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task InvalidFactoryWithUseProxy_IsNotRegistered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService;
+
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Factory = "BuildService", UseProxyFactory = true)]
+			public sealed class Service : IService
+			{
+				public static Service BuildService(IServiceProvider sp)
+				{
+					return new();
+				}
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
 	public async Task ValidKeyedFactory_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
@@ -236,7 +274,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, ServiceKey = "Key", Factory = "BuildService")]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, ServiceKey = "Key", Factory = "BuildService")]
 			public sealed class Service : IService
 			{
 				public static Service BuildService(IServiceProvider sp, object key)
@@ -270,7 +308,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, ServiceKey = "Key")]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, ServiceKey = "Key")]
 			public sealed class Service : IService
 			{
 			}
@@ -298,10 +336,11 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService1;
+			public interface IService2;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, Tags = ["abc", "def"])]
-			public sealed class Service : IService
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Tags = ["abc", "def"])]
+			public sealed class Service : IService1, IService2
 			{
 			}
 			"""
@@ -330,7 +369,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, DuplicateStrategy = DuplicateStrategy.Append)]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, DuplicateStrategy = DuplicateStrategy.Append)]
 			public sealed class Service : IService
 			{
 			}
@@ -360,7 +399,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, DuplicateStrategy = DuplicateStrategy.Replace)]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, DuplicateStrategy = DuplicateStrategy.Replace)]
 			public sealed class Service : IService
 			{
 			}
@@ -390,7 +429,7 @@ public sealed class RegisterClass_Self_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self, DuplicateStrategy = DuplicateStrategy.Skip)]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, DuplicateStrategy = DuplicateStrategy.Skip)]
 			public sealed class Service : IService
 			{
 			}
@@ -418,7 +457,7 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.Self, DuplicateStrategy = DuplicateStrategy.Append)]
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, DuplicateStrategy = DuplicateStrategy.Append)]
 
 			public interface IService;
 
@@ -450,7 +489,7 @@ public sealed class RegisterClass_Self_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.Self, DuplicateStrategy = DuplicateStrategy.Replace)]
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, DuplicateStrategy = DuplicateStrategy.Replace)]
 
 			public interface IService;
 
@@ -486,7 +525,7 @@ public sealed class RegisterClass_Self_Tests
 
 			public interface IService;
 
-			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.Self)]
+			[Register{{lifetime}}(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
 			public sealed class Service : IService
 			{
 			}

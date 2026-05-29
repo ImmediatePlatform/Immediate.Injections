@@ -11,11 +11,12 @@ public static partial class RegistrationServiceCollectionExtensions
 {
 	static partial void Register{{ lifetime; if arity >= 1; arity; end }}(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags)
 	{
-		{{~ for c in classes ~}}
-		{{~ if c.tags != null ~}}
-		if (tags is [] || Intersects(tags, [{{ c.tags }}]))
+		{{~ for g in classes_by_tag ~}}
+		{{~ if g.key != null ~}}
+		if (tags is [] || Intersects(tags, [{{ g.key }}]))
 		{
 		{{~ end ~}}
+		{{~ for c in g ~}}
 		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.{{ c.service_method }}(
 			services,
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.{{ c.descriptor_type }}(
@@ -26,7 +27,8 @@ public static partial class RegistrationServiceCollectionExtensions
 				{{ c.implementation }}
 			)
 		);
-		{{~ if c.tags != null ~}}
+		{{~ end ~}}
+		{{~ if g.key != null ~}}
 		}
 		{{~ end ~}}
 

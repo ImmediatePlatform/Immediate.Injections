@@ -302,7 +302,12 @@ file static class Extensions
 		if (constant.Kind != TypedConstantKind.Array)
 			return null;
 
-		return string.Join(", ", constant.Values.Select(tc => tc.ToCSharpString()));
+		return string.Join(
+			", ",
+			constant.Values
+				.Select(tc => tc.ToCSharpString())
+				.OrderBy(x => x, StringComparer.Ordinal)
+		);
 	}
 
 	public static INamedTypeSymbol? GetArgumentType(this TypedConstant constant)

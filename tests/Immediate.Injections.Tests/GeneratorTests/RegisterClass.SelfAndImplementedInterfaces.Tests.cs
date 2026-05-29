@@ -2,7 +2,7 @@ using static Immediate.Injections.Tests.Utility;
 
 namespace Immediate.Injections.Tests.GeneratorTests;
 
-public sealed class RegisterClass_SelfAndSelfAndImplementedInterfaces_Tests
+public sealed class RegisterClass_SelfAndImplementedInterfaces_Tests
 {
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]

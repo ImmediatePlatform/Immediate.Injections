@@ -55,7 +55,6 @@ public sealed partial class ImmediateInjectionsGenerator
 				token.ThrowIfCancellationRequested();
 
 				var arguments = attributeData.NamedArguments;
-
 				var serviceType = arguments.GetArgumentValue("ServiceType")?.GetArgumentType();
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
@@ -63,6 +62,12 @@ public sealed partial class ImmediateInjectionsGenerator
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
 				var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType != null ? "None" : defaultRegistration);
 				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+
+				if (targetSymbol.IsGenericType
+					&& (factory is { } || useProxy))
+				{
+					return [];
+				}
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return [];
@@ -80,6 +85,69 @@ public sealed partial class ImmediateInjectionsGenerator
 						return [];
 					}
 
+					if (targetSymbol.IsGenericType)
+					{
+						if (serviceType == null)
+						{
+							var unbound = targetSymbol.ConstructUnboundGenericType();
+
+							return [
+								BuildRegistration(
+									unbound,
+									unbound,
+									useProxy: false,
+									factory: null
+								),
+							];
+						}
+
+						if (serviceType.Arity != targetSymbol.Arity)
+							return [];
+
+						if (!serviceType.IsUnboundGenericType)
+						{
+							var concreteTargetSymbol = targetSymbol.Construct(
+								serviceType.TypeArguments,
+								serviceType.TypeArgumentNullableAnnotations
+							);
+
+							if (context.SemanticModel.Compilation.ClassifyConversion(concreteTargetSymbol, serviceType) is not (
+								{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+							))
+							{
+								return [];
+							}
+
+							return [
+								BuildRegistration(
+									serviceType,
+									concreteTargetSymbol,
+									useProxy: false,
+									factory: null
+								),
+							];
+						}
+
+						if (context.SemanticModel.Compilation.ClassifyConversion(
+								targetSymbol,
+								serviceType.ConstructedFrom.Construct(targetSymbol.TypeArguments, targetSymbol.TypeArgumentNullableAnnotations)
+							) is not (
+							{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+						))
+						{
+							return [];
+						}
+
+						return [
+							BuildRegistration(
+								serviceType,
+								targetSymbol.ConstructUnboundGenericType(),
+								useProxy: false,
+								factory: null
+							),
+						];
+					}
+
 					if (
 						serviceType != null
 						&& context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
@@ -90,7 +158,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						return [];
 					}
 
-					return [BuildRegistration(serviceType ?? targetSymbol, useProxy: useProxy, factory: factory)];
+					return [BuildRegistration(serviceType ?? targetSymbol, targetSymbol, useProxy: useProxy, factory: factory)];
 				}
 
 				// service type is only valid if we aren't specifying a registration strategy
@@ -103,7 +171,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					if (useProxy)
 						return [];
 
-					return [BuildRegistration(targetSymbol, useProxy: false, factory: factory)];
+					return [BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory)];
 				}
 
 				if (registrationStrategy is "ImplementedInterfaces")
@@ -114,17 +182,17 @@ public sealed partial class ImmediateInjectionsGenerator
 
 					return targetSymbol
 						.AllInterfaces
-						.Select(i => BuildRegistration(i, useProxy: useProxy, factory: factory));
+						.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxy, factory: factory));
 				}
 
 				if (registrationStrategy is "SelfAndImplementedInterfaces")
 				{
 					return
 					[
-						BuildRegistration(targetSymbol, useProxy: false, factory: factory),
+						BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory),
 						..targetSymbol
 							.AllInterfaces
-							.Select(i => BuildRegistration(i, useProxy: useProxy, factory: factory)),
+							.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxy, factory: factory)),
 					];
 				}
 
@@ -132,6 +200,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				RegisterClass BuildRegistration(
 					INamedTypeSymbol serviceSymbol,
+					INamedTypeSymbol targetSymbol,
 					bool useProxy,
 					string? factory
 				)

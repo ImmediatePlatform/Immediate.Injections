@@ -125,6 +125,35 @@ public sealed class RegisterClass_None_Generic_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ServiceType_NonGeneric_IsNotRegistered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService;
+
+			[Register{{lifetime}}(ServiceType = typeof(IService))]
+			public class Service<T> : IService
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
 	public async Task ServiceType_Concrete_IncompatibleCast_IsNotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(

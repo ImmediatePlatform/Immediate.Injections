@@ -173,9 +173,6 @@ public sealed partial class ImmediateInjectionsGenerator
 
 					if (targetSymbol.IsGenericType)
 					{
-						if (factory is { })
-							return [];
-
 						var unbound = targetSymbol.ConstructUnboundGenericType();
 						return [BuildRegistration(unbound, unbound, useProxy: false, factory: null)];
 					}
@@ -187,14 +184,22 @@ public sealed partial class ImmediateInjectionsGenerator
 				{
 					if (targetSymbol.IsGenericType)
 					{
-						if (useProxy || factory is { })
-							return [];
-
 						var unbound = targetSymbol.ConstructUnboundGenericType();
 
 						return targetSymbol
 							.AllInterfaces
-							.Where(i => i.IsGenericType && i.Arity == targetSymbol.Arity)
+							.Where(i =>
+								i.IsGenericType
+								&& i.Arity == targetSymbol.Arity
+								&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
+								&& context.SemanticModel.Compilation.ClassifyConversion(
+									targetSymbol,
+									i.ConstructedFrom.Construct(
+										targetSymbol.TypeArguments,
+										targetSymbol.TypeArgumentNullableAnnotations
+									)
+								) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
+							)
 							.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null));
 					}
 
@@ -211,9 +216,6 @@ public sealed partial class ImmediateInjectionsGenerator
 				{
 					if (targetSymbol.IsGenericType)
 					{
-						if (useProxy || factory is { })
-							return [];
-
 						var unbound = targetSymbol.ConstructUnboundGenericType();
 
 						return
@@ -221,7 +223,18 @@ public sealed partial class ImmediateInjectionsGenerator
 							BuildRegistration(unbound, unbound, useProxy: false, factory: null),
 							..targetSymbol
 								.AllInterfaces
-								.Where(i => i.IsGenericType && i.Arity == targetSymbol.Arity)
+								.Where(i =>
+									i.IsGenericType
+									&& i.Arity == targetSymbol.Arity
+									&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
+									&& context.SemanticModel.Compilation.ClassifyConversion(
+										targetSymbol,
+										i.ConstructedFrom.Construct(
+											targetSymbol.TypeArguments,
+											targetSymbol.TypeArgumentNullableAnnotations
+										)
+									) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
+								)
 								.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null)),
 						];
 					}

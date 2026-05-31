@@ -171,13 +171,40 @@ public sealed partial class ImmediateInjectionsGenerator
 					if (useProxy)
 						return [];
 
+					if (targetSymbol.IsGenericType)
+					{
+						var unbound = targetSymbol.ConstructUnboundGenericType();
+						return [BuildRegistration(unbound, unbound, useProxy: false, factory: null)];
+					}
+
 					return [BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory)];
 				}
 
 				if (registrationStrategy is "ImplementedInterfaces")
 				{
+					if (targetSymbol.IsGenericType)
+					{
+						var unbound = targetSymbol.ConstructUnboundGenericType();
+
+						return targetSymbol
+							.AllInterfaces
+							.Where(i =>
+								i.IsGenericType
+								&& i.Arity == targetSymbol.Arity
+								&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
+								&& context.SemanticModel.Compilation.ClassifyConversion(
+									targetSymbol,
+									i.ConstructedFrom.Construct(
+										targetSymbol.TypeArguments,
+										targetSymbol.TypeArgumentNullableAnnotations
+									)
+								) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
+							)
+							.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null));
+					}
+
 					// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
-					if (useProxy && factory != null)
+					if (useProxy && factory is { })
 						return [];
 
 					return targetSymbol
@@ -187,6 +214,31 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				if (registrationStrategy is "SelfAndImplementedInterfaces")
 				{
+					if (targetSymbol.IsGenericType)
+					{
+						var unbound = targetSymbol.ConstructUnboundGenericType();
+
+						return
+						[
+							BuildRegistration(unbound, unbound, useProxy: false, factory: null),
+							..targetSymbol
+								.AllInterfaces
+								.Where(i =>
+									i.IsGenericType
+									&& i.Arity == targetSymbol.Arity
+									&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
+									&& context.SemanticModel.Compilation.ClassifyConversion(
+										targetSymbol,
+										i.ConstructedFrom.Construct(
+											targetSymbol.TypeArguments,
+											targetSymbol.TypeArgumentNullableAnnotations
+										)
+									) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
+								)
+								.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null)),
+						];
+					}
+
 					return
 					[
 						BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory),

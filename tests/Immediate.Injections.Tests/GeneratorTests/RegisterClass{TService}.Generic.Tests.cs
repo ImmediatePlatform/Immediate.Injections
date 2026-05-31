@@ -2,7 +2,7 @@ using static Immediate.Injections.Tests.Utility;
 
 namespace Immediate.Injections.Tests.GeneratorTests;
 
-public sealed class RegisterClass_None_Tests
+public sealed class RegisterClass_TService_Generic_Tests
 {
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
@@ -13,10 +13,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}]
-			public class Service : IService
+			[Register{{lifetime}}<IService<string>>]
+			public class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -25,7 +25,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -36,17 +36,15 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task ServiceType_IsRegistered(string lifetime)
+	public async Task TService_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
-			
-			[Register{{lifetime}}(ServiceType = typeof(Service))]
-			public class Service : IService
+			[Register{{lifetime}}<Service<string>>]
+			public class Service<T>
 			{
 			}
 			"""
@@ -55,7 +53,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -66,7 +64,7 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task NonGeneric_ServiceType_Generic_Registered(string lifetime)
+	public async Task ServiceType_IncompatibleCast_NotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -75,8 +73,8 @@ public sealed class RegisterClass_None_Tests
 			
 			public interface IService<T>;
 
-			[Register{{lifetime}}(ServiceType = typeof(IService<string>))]
-			public class Service : IService<string>
+			[Register{{lifetime}}<IService<string>>]
+			public class Service<T>
 			{
 			}
 			"""
@@ -85,7 +83,6 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -96,7 +93,36 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task ServiceType_IncompatibleCast_IsNotRegistered(string lifetime)
+	public async Task ServiceType_IncompatibleArity_NotRegistered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService<T1, T2>;
+
+			[Register{{lifetime}}<IService<string, int>>]
+			public class Service<T> : IService<T, T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task ServiceType_NonGeneric_NotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -105,8 +131,8 @@ public sealed class RegisterClass_None_Tests
 			
 			public interface IService;
 
-			[Register{{lifetime}}(ServiceType = typeof(IService))]
-			public class Service
+			[Register{{lifetime}}<IService>]
+			public class Service<T> : IService
 			{
 			}
 			"""
@@ -125,17 +151,17 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task InvalidFactory_IsNotRegistered(string lifetime)
+	public async Task InvalidFactory_NotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(Factory = "Test")]
-			public class Service : IService
+			[Register{{lifetime}}<IService<string>>(Factory = "Test")]
+			public class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -154,7 +180,7 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task InvalidFactoryWithUseProxy_IsNotRegistered(string lifetime)
+	public async Task InvalidFactoryWithUseProxy_NotRegistered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -163,12 +189,12 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(Factory = "BuildService", UseProxyFactory = true)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(Factory = "BuildService", UseProxyFactory = true)]
+			public sealed class Service<T> : IService<T>
 			{
-				public static Service BuildService(IServiceProvider sp)
+				public static Service<T> BuildService(IServiceProvider sp)
 				{
 					return new();
 				}
@@ -189,7 +215,7 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task InvalidUseProxyWithoutServiceType_IsNotRegistered(string lifetime)
+	public async Task UseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -198,10 +224,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(UseProxyFactory = true)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(UseProxyFactory = true)]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -210,6 +236,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -220,7 +247,7 @@ public sealed class RegisterClass_None_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task UseProxyWithServiceType_Registered(string lifetime)
+	public async Task KeyedUseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(
 			$$"""
@@ -229,10 +256,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(ServiceType = typeof(IService), UseProxyFactory = true)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(ServiceKey = "Key", UseProxyFactory = true)]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -241,39 +268,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await VerifyIgnoreCommonFile(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task UseKeyedProxyWithServiceType_Registered(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using System;
-
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService;
-
-			[Register{{lifetime}}(ServiceType = typeof(IService), ServiceKey = "Key", UseProxyFactory = true)]
-			public sealed class Service : IService
-			{
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -293,12 +288,12 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(Factory = "BuildService")]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(Factory = "BuildService")]
+			public sealed class Service<T> : IService<T>
 			{
-				public static Service BuildService(IServiceProvider sp)
+				public static Service<T> BuildService(IServiceProvider sp)
 				{
 					return new();
 				}
@@ -309,7 +304,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -329,12 +324,12 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(ServiceKey = "Key", Factory = "BuildService")]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(ServiceKey = "Key", Factory = "BuildService")]
+			public sealed class Service<T> : IService<T>
 			{
-				public static Service BuildService(IServiceProvider sp, object key)
+				public static Service<T> BuildService(IServiceProvider sp, object key)
 				{
 					return new();
 				}
@@ -345,79 +340,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await VerifyIgnoreCommonFile(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task ServiceType_ValidFactory_Registered(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using System;
-
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService;
-
-			[Register{{lifetime}}(Factory = "BuildService")]
-			public sealed class Service : IService
-			{
-				public static Service BuildService(IServiceProvider sp)
-				{
-					return new();
-				}
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await VerifyIgnoreCommonFile(result)
-			.UseParameters(lifetime);
-	}
-
-	[Theory]
-	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
-	public async Task ServiceType_ValidKeyedFactory_Registered(string lifetime)
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			$$"""
-			using System;
-
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public interface IService;
-
-			[Register{{lifetime}}(ServiceType = typeof(IService), ServiceKey = "Key", Factory = "BuildService")]
-			public sealed class Service : IService
-			{
-				public static Service BuildService(IServiceProvider sp, object key)
-				{
-					return new();
-				}
-			}
-			"""
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -435,10 +358,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(ServiceKey = "Key")]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(ServiceKey = "Key")]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -447,7 +370,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -465,10 +388,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(Tags = ["abc", "def"])]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(Tags = ["abc", "def"])]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -477,7 +400,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -495,10 +418,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(DuplicateStrategy = DuplicateStrategy.Append)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(DuplicateStrategy = DuplicateStrategy.Append)]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -507,7 +430,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -525,10 +448,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(DuplicateStrategy = DuplicateStrategy.Replace)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(DuplicateStrategy = DuplicateStrategy.Replace)]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -537,7 +460,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -555,10 +478,10 @@ public sealed class RegisterClass_None_Tests
 			using Immediate.Injections.Shared;
 			using Microsoft.Extensions.DependencyInjection;
 			
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}(DuplicateStrategy = DuplicateStrategy.Skip)]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>(DuplicateStrategy = DuplicateStrategy.Skip)]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -567,7 +490,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -587,10 +510,10 @@ public sealed class RegisterClass_None_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Append)]
 
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -599,7 +522,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -619,10 +542,10 @@ public sealed class RegisterClass_None_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Replace)]
 
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -631,7 +554,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -651,10 +574,10 @@ public sealed class RegisterClass_None_Tests
 			
 			[assembly: RegistrationDefaults(DuplicateStrategy = DuplicateStrategy.Skip)]
 
-			public interface IService;
+			public interface IService<T>;
 
-			[Register{{lifetime}}]
-			public sealed class Service : IService
+			[Register{{lifetime}}<IService<string>>]
+			public sealed class Service<T> : IService<T>
 			{
 			}
 			"""
@@ -663,7 +586,7 @@ public sealed class RegisterClass_None_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`0.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);

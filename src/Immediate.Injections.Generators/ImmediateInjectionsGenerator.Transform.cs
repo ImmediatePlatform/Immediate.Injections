@@ -226,7 +226,7 @@ public sealed partial class ImmediateInjectionsGenerator
 	{
 		token.ThrowIfCancellationRequested();
 
-		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false } targetSymbol)
+		if (context.TargetSymbol is not INamedTypeSymbol)
 			return new([]);
 
 		return context.Attributes
@@ -234,6 +234,7 @@ public sealed partial class ImmediateInjectionsGenerator
 			{
 				token.ThrowIfCancellationRequested();
 
+				var targetSymbol = (INamedTypeSymbol)context.TargetSymbol;
 				var arguments = attributeData.NamedArguments;
 
 				if (attributeData.AttributeClass is not
@@ -245,6 +246,20 @@ public sealed partial class ImmediateInjectionsGenerator
 					})
 				{
 					return null;
+				}
+
+				if (targetSymbol.IsGenericType)
+				{
+					if (!serviceSymbol.IsGenericType)
+						return null;
+
+					if (targetSymbol.Arity != serviceSymbol.Arity)
+						return null;
+
+					targetSymbol = targetSymbol.Construct(
+						serviceSymbol.TypeArguments,
+						serviceSymbol.TypeArgumentNullableAnnotations
+					);
 				}
 
 				if (

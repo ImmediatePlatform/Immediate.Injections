@@ -71,31 +71,35 @@ public sealed partial class ImmediateInjectionsGenerator
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return [];
 
-				if (registrationStrategy is "None")
+				switch (registrationStrategy)
 				{
-					if (
-						// if user wants to proxy
-						useProxy
-						// then either they don't have a factory (because proxy _is_ a factory)
-						// or they are trying to register target class (can't proxy self -> self)
-						&& (factory is { } || serviceType is null)
-					)
+					case "None":
 					{
-						return [];
-					}
+						// if self anyway, go there to avoid redundancies here
+						if (serviceType is null || SymbolEqualityComparer.Default.Equals(serviceType, targetSymbol))
+							goto case "DoSelf";
 
-					if (targetSymbol.IsGenericType)
-					{
-						if (serviceType == null)
+						// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
+						if (useProxy && factory is { })
+							return [];
+
+						if (!targetSymbol.IsGenericType)
 						{
-							var unbound = targetSymbol.ConstructUnboundGenericType();
+							if (
+								context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
+								{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
+								)
+							)
+							{
+								return [];
+							}
 
 							return [
 								BuildRegistration(
-									unbound,
-									unbound,
-									useProxy: false,
-									factory: null
+									serviceType,
+									targetSymbol,
+									useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
+									factory: factory
 								),
 							];
 						}
@@ -127,12 +131,12 @@ public sealed partial class ImmediateInjectionsGenerator
 							];
 						}
 
-						if (context.SemanticModel.Compilation.ClassifyConversion(
+						if (
+							context.SemanticModel.Compilation.ClassifyConversion(
 								targetSymbol,
 								serviceType.ConstructedFrom.Construct(targetSymbol.TypeArguments, targetSymbol.TypeArgumentNullableAnnotations)
-							) is not (
-							{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-						))
+							) is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true })
+						)
 						{
 							return [];
 						}
@@ -147,87 +151,41 @@ public sealed partial class ImmediateInjectionsGenerator
 						];
 					}
 
-					if (
-						serviceType is { }
-						&& context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
-						{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-						)
-					)
+					case "Self":
 					{
-						return [];
+						// service type is only valid if we aren't specifying a registration strategy
+						if (serviceType is { })
+							return [];
+
+						goto case "DoSelf";
 					}
 
-					return [
-						BuildRegistration(
-							serviceType ?? targetSymbol,
-							targetSymbol,
-							useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
-							factory: factory
-						),
-					];
-				}
-
-				// service type is only valid if we aren't specifying a registration strategy
-				if (serviceType is { })
-					return [];
-
-				if (registrationStrategy is "Self")
-				{
-					// what does it mean to proxy to the concrete when targetting self?
-					if (useProxy)
-						return [];
-
-					if (targetSymbol.IsGenericType)
+					case "DoSelf":
 					{
-						var unbound = targetSymbol.ConstructUnboundGenericType();
-						return [BuildRegistration(unbound, unbound, useProxy: false, factory: null)];
+						// what does it mean to proxy to the concrete when targetting self?
+						if (useProxy)
+							return [];
+
+						if (targetSymbol.IsGenericType)
+						{
+							var unbound = targetSymbol.ConstructUnboundGenericType();
+							return [BuildRegistration(unbound, unbound, useProxy: false, factory: null)];
+						}
+
+						return [BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory)];
 					}
 
-					return [BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory)];
-				}
-
-				if (registrationStrategy is "ImplementedInterfaces")
-				{
-					if (targetSymbol.IsGenericType)
+					case "ImplementedInterfaces":
 					{
-						var unbound = targetSymbol.ConstructUnboundGenericType();
+						// service type is only valid if we aren't specifying a registration strategy
+						if (serviceType is { })
+							return [];
 
-						return targetSymbol
-							.AllInterfaces
-							.Where(i =>
-								i.IsGenericType
-								&& i.Arity == targetSymbol.Arity
-								&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
-								&& context.SemanticModel.Compilation.ClassifyConversion(
-									targetSymbol,
-									i.ConstructedFrom.Construct(
-										targetSymbol.TypeArguments,
-										targetSymbol.TypeArgumentNullableAnnotations
-									)
-								) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
-							)
-							.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null));
-					}
+						if (targetSymbol.IsGenericType)
+						{
+							var unbound = targetSymbol.ConstructUnboundGenericType();
 
-					// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
-					if (useProxy && factory is { })
-						return [];
-
-					return targetSymbol
-						.AllInterfaces
-						.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), factory: factory));
-				}
-
-				if (registrationStrategy is "SelfAndImplementedInterfaces")
-				{
-					if (targetSymbol.IsGenericType)
-					{
-						var unbound = targetSymbol.ConstructUnboundGenericType();
-
-						return
-						[
-							BuildRegistration(unbound, unbound, useProxy: false, factory: null),
-							..targetSymbol
+							return targetSymbol
 								.AllInterfaces
 								.Where(i =>
 									i.IsGenericType
@@ -241,20 +199,81 @@ public sealed partial class ImmediateInjectionsGenerator
 										)
 									) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
 								)
-								.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null)),
+								.Select(i => BuildRegistration(i.ConstructUnboundGenericType(), unbound, useProxy: false, factory: null));
+						}
+
+						// what does it mean to proxy to the concrete, but also provide a factory when there is no self?
+						if (useProxy && factory is { })
+							return [];
+
+						return targetSymbol
+							.AllInterfaces
+							.Select(i =>
+								BuildRegistration(
+									i,
+									targetSymbol,
+									useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
+									factory: factory
+								)
+							);
+					}
+
+					case "SelfAndImplementedInterfaces":
+					{
+						// service type is only valid if we aren't specifying a registration strategy
+						if (serviceType is { })
+							return [];
+
+						if (targetSymbol.IsGenericType)
+						{
+							var unbound = targetSymbol.ConstructUnboundGenericType();
+
+							return
+							[
+								BuildRegistration(unbound, unbound, useProxy: false, factory: null),
+								..targetSymbol
+									.AllInterfaces
+									.Where(i =>
+										i.IsGenericType
+										&& i.Arity == targetSymbol.Arity
+										&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
+										&& context.SemanticModel.Compilation.ClassifyConversion(
+											targetSymbol,
+											i.ConstructedFrom.Construct(
+												targetSymbol.TypeArguments,
+												targetSymbol.TypeArgumentNullableAnnotations
+											)
+										) is { IsIdentity: true } or { IsImplicit: true, IsReference: true }
+									)
+									.Select(i =>
+										BuildRegistration(
+											i.ConstructUnboundGenericType(),
+											unbound,
+											useProxy: false,
+											factory: null
+										)
+									),
+							];
+						}
+
+						return
+						[
+							BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory),
+							..targetSymbol
+								.AllInterfaces
+								.Select(i =>
+									BuildRegistration(i,
+										targetSymbol,
+										useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
+										factory: factory
+									)
+								),
 						];
 					}
 
-					return
-					[
-						BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory),
-						..targetSymbol
-							.AllInterfaces
-							.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), factory: factory)),
-					];
+					default:
+						return [];
 				}
-
-				return [];
 
 				RegisterClass BuildRegistration(
 					INamedTypeSymbol serviceSymbol,
@@ -324,14 +343,9 @@ public sealed partial class ImmediateInjectionsGenerator
 					);
 				}
 
-				if (
-					context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceSymbol) is not (
-					{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-					)
-				)
-				{
+				var conversion = context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceSymbol);
+				if (conversion is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
 					return null;
-				}
 
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
@@ -340,8 +354,14 @@ public sealed partial class ImmediateInjectionsGenerator
 				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
 				var useProxy = useProxyValue is true;
 
-				if (factory is { } && useProxy)
-					return null;
+				if (useProxy)
+				{
+					if (factory is { })
+						return null;
+
+					if (conversion.IsIdentity)
+						return null;
+				}
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;
@@ -349,7 +369,11 @@ public sealed partial class ImmediateInjectionsGenerator
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-					Implementation = targetSymbol.BuildImplementationArgument(useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), serviceKey is { }, factory),
+					Implementation = targetSymbol.BuildImplementationArgument(
+						useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
+						isKeyed: serviceKey is { },
+						factory: factory
+					),
 					Tags = tags,
 					ServiceKey = serviceKey,
 					DuplicateStrategy = duplicateStrategy,

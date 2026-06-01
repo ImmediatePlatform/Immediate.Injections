@@ -8,7 +8,9 @@
 [![GitHub Actions](https://github.com/ImmediatePlatform/Immediate.Injections/actions/workflows/build.yml/badge.svg)](https://github.com/ImmediatePlatform/Immediate.Injections/actions)
 ---
 
-Incremental source generator that helps register attribute-decorated services with `Microsoft.Extensions.DependencyInjection` container in one fell swoop. Supports multiple registration strategies, duplicate-handling strategies, tagging, and much more.
+Immediate.Injections is a support package for `Microsoft.Extensions.DependencyInjection` which allows declaring
+registrations through attributes. This package supports multiple registration strategies, duplicate-handling strategies,
+tagging, and much more.
 
 ## Installation
 
@@ -18,36 +20,42 @@ dotnet add package Immediate.Injections
 
 ## Basic Usage
 
-### Registering a service
+### Declaring a registration
 
 Apply one of the three lifetime attributes to a class or record:
 
 ```cs
 [RegisterSingleton]
-public class MyService { }
+public class MyService;
 
 [RegisterScoped]
-public class MyScopedService { }
+public class MyScopedService;
 
 [RegisterTransient]
-public class MyTransientService { }
+public class MyTransientService<T>;
 ```
 
 By default (when no `RegistrationStrategy` is set at the attribute or assembly level), a class is registered as itself.
+Generic classes will be registered using open-generics.
 
-### Calling the generated extension method
+### Adding declared registrations to the `IServiceCollection` collection
 
-The generator produces a `RegistrationServiceCollectionExtensions` class with an extension method named `Add{AssemblyName}Services`:
+In your `Program.cs`, add a call to `services.AddXxxServices()`, where Xxx is the application identifier. By default,
+this is the short form of the assembly name. For example:
 
-```cs
-builder.Services.AddMyProjectServices();
-```
+* For a project named `Web`, it will be `services.AddWebHandlers()`
+* For a project named `Application.Web`, it will be `services.AddApplicationWebHandlers()`
 
-The assembly name is derived from the assembly's `AssemblyName` property, with dots and spaces stripped. It can be overridden with `ImmediateAssemblyIdentifierAttribute`.
+However, this name can be overridden using `[assembly: ImmediateAssemblyIdentifierAttribute("SomeIdentifier")]`.
+
+### Tags
 
 Tags can be passed to selectively register only tagged services:
 
 ```cs
+[RegisterSingleton(Tags = ["tag-a"])]
+public class MyService;
+
 builder.Services.AddMyProjectServices("tag-a", "tag-b");
 ```
 
@@ -62,16 +70,20 @@ All three lifetime attributes — `RegisterSingleton`, `RegisterScoped`, `Regist
 Registers the class as the specified service type. The class must be assignable to it.
 
 ```cs
-[RegisterSingleton<IMyService>]
-public class MyService : IMyService { }
-```
-
-Alternatively
-
-```cs
 [RegisterSingleton(ServiceType = typeof(IMyService))]
 public class MyService : IMyService { }
 ```
+
+Alternatively, a concrete registration may be declared using generic attributes.
+
+```cs
+[RegisterSingleton<IMyService>]
+public class MyService : IMyService { }
+
+[RegisterScoped<IService<string>>]
+public class MyService<T> : IMyService<string>
+```
+
 
 ### `RegistrationStrategy`
 
@@ -110,7 +122,10 @@ public class MyService { }
 
 ### `Factory`
 
-Name of a static factory method on the class to use as `ImplementationFactory`. The method must be `static`, return the class type, and accept `(IServiceProvider)` for non-keyed or `(IServiceProvider, object)` for keyed registrations. Cannot be combined with `UseProxyFactory` or used on open generic types.
+Name of a static factory method on the class to use as `ImplementationFactory`. The method must be `static`, return the
+class type, and accept `(IServiceProvider)` for non-keyed or `(IServiceProvider, object)` for keyed registrations.
+Cannot be combined with `UseProxyFactory` or used on open generic types. Factories cannot be used with generic target
+classes.
 
 ```csharp
 [RegisterSingleton(Factory = nameof(Create))]
@@ -122,9 +137,14 @@ public class MyService
 
 ### `UseProxyFactory`
 
-When `true`, the registration uses `ServiceProviderServiceExtensions.GetRequiredService<T>` (or the keyed equivalent) as the factory. This produces a proxy registration — it does not register the implementation itself, but resolves it from the container.
+When `true`, the registration uses `ServiceProviderServiceExtensions.GetRequiredService<T>` (or the keyed equivalent) as
+the factory. This produces a proxy registration — it does not register the implementation itself, but resolves it from
+the container.
 
-Cannot be combined with `Factory`. Cannot be used with `RegistrationStrategy = Self` or on open generics.
+`UseProxyFactory = true` be combined with the following:
+* A provided `Factory`,
+* `RegistrationStrategy = Self`, or
+* Generic target classes
 
 ```csharp
 [RegisterSingleton(ServiceType = typeof(IMyService), UseProxyFactory = true)]
@@ -144,12 +164,14 @@ public class BackgroundWorker { }
 
 ## Global Configuration
 
-`ServiceKey` and `DuplicationStrategy` can be configured globally with `[RegistrationDefaults]` attribute applied to the assembly.
+`ServiceKey` and `DuplicationStrategy` can be configured globally with `[RegistrationDefaults]` attribute applied to the
+assembly.
 
 ```cs
 [assembly: RegistrationDefaults(
 	RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces,
-	DuplicateStrategy = DuplicateStrategy.Replace
+	DuplicateStrategy = DuplicateStrategy.Replace,
+	UseProxyFactory = true
 )]
 ```
 
@@ -159,7 +181,9 @@ Per-attribute values take precedence over assembly defaults.
 
 ## `[RegisterServices]`
 
-Apply this attribute to a `static void` method to have it called as part of `AddXxxServices`. The method must accept `IServiceCollection` as its first parameter, and optionally `ReadOnlySpan<string>` as its second parameter to receive the tags passed to `AddXxxServices`.
+Apply this attribute to a `static void` method to have it called as part of `AddXxxServices`. The method must accept
+`IServiceCollection` as its first parameter, and optionally `ReadOnlySpan<string>` as its second parameter to receive
+the tags passed to `AddXxxServices`.
 
 ```csharp
 public static class ManualRegistrations
@@ -179,13 +203,20 @@ public static class ManualRegistrations
 
 ### From Injectio
 
-* `Tags = "foo,bar"` becomes `Tags = ["foo", "bar"]`
-* `RegistrationStrategy.SelfWithInterfaces` becomes `RegistrationStrategy.SelfAndImplementedInterfaces`
-* `Duplicate = DuplicateStrategy.Replace` becomes `DuplicateStrategy = DuplicateStrategy.Replace`
+> [!NOTE]
+> Immediate.Injections uses a different default registration strategy than Injectio. For a clean migration, set
+> `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces, UseProxyFactory = true)]`
+
+* The `Tags` parameter receives a `string[]` instead of a comma-separated `string`. Example: `Tags = "foo,bar"` becomes `Tags = ["foo", "bar"]`
+* The `RegistrationStrategy.SelfWithInterfaces` enum value changes to `RegistrationStrategy.SelfAndImplementedInterfaces`
+* The `Registration` parameter changes to `RegistrationStrategy`
+* The `Duplicate` parameter becomes `DuplicateStrategy`
 * Assembly name override moves from MSBuild property to `[ImmediateAssemblyIdentifier]` attribute
-* Add `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces)]` to get the default Injectio behaviour
 
 ### From AutoRegisterInject
 
-* Add `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]` to get the default ARI behaviour
-* `[TryRegister*]` attributes become `DuplicateStrategy = DuplicateStrategy.Skip`
+> [!NOTE]
+> Immediate.Injections uses a different default registration strategy than Injectio. For a clean migration, set
+> `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]`.
+
+* The `[TryRegisterXxx]` attributes are removed; but the behavior is implemented using a parameter. Example: `DuplicateStrategy = DuplicateStrategy.Skip`

@@ -627,6 +627,108 @@ public sealed class RegisterClass_TService_TImplementation_Tests
 			.UseParameters(lifetime);
 	}
 
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblyUseProxyFactory_Registered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(UseProxyFactory = true)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblyUseProxyFactoryWithOverride_Registered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(UseProxyFactory = true)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>(UseProxyFactory = false)]
+			public sealed class Service<T> : IService<T>
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task AssemblyUseProxyFactory_Factory_Registered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			[assembly: RegistrationDefaults(UseProxyFactory = true)]
+
+			public interface IService<T>;
+
+			[Register{{lifetime}}<IService<string>, Service<string>>(Factory = "BuildService")]
+			public sealed class Service<T> : IService<T>
+			{
+				public static Service<T> BuildService(IServiceProvider sp)
+				{
+					return new();
+				}
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`2.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
 	[Fact]
 	public async Task MultipleAttributes_Registered()
 	{

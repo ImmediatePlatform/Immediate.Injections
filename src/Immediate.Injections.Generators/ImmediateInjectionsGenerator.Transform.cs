@@ -48,6 +48,7 @@ public sealed partial class ImmediateInjectionsGenerator
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
 		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
 		var defaultRegistration = defaultsAttribute?.NamedArguments.GetEnumArgumentValue("RegistrationStrategy") ?? "None";
+		var defaultUseProxyFactory = defaultsAttribute?.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 		return context.Attributes
 			.SelectMany(attributeData =>
@@ -60,14 +61,12 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType != null ? "None" : defaultRegistration);
-				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+				var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType is { } ? "None" : defaultRegistration);
+				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
+				var useProxy = useProxyValue is true;
 
-				if (targetSymbol.IsGenericType
-					&& (factory is { } || useProxy))
-				{
+				if (targetSymbol.IsGenericType && (factory is { } || useProxy))
 					return [];
-				}
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return [];
@@ -149,7 +148,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					}
 
 					if (
-						serviceType != null
+						serviceType is { }
 						&& context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
 						{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
 						)
@@ -158,11 +157,18 @@ public sealed partial class ImmediateInjectionsGenerator
 						return [];
 					}
 
-					return [BuildRegistration(serviceType ?? targetSymbol, targetSymbol, useProxy: useProxy, factory: factory)];
+					return [
+						BuildRegistration(
+							serviceType ?? targetSymbol,
+							targetSymbol,
+							useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
+							factory: factory
+						),
+					];
 				}
 
 				// service type is only valid if we aren't specifying a registration strategy
-				if (serviceType != null)
+				if (serviceType is { })
 					return [];
 
 				if (registrationStrategy is "Self")
@@ -209,7 +215,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 					return targetSymbol
 						.AllInterfaces
-						.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxy, factory: factory));
+						.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), factory: factory));
 				}
 
 				if (registrationStrategy is "SelfAndImplementedInterfaces")
@@ -244,7 +250,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						BuildRegistration(targetSymbol, targetSymbol, useProxy: false, factory: factory),
 						..targetSymbol
 							.AllInterfaces
-							.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxy, factory: factory)),
+							.Select(i => BuildRegistration(i, targetSymbol, useProxy: useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), factory: factory)),
 					];
 				}
 
@@ -280,6 +286,10 @@ public sealed partial class ImmediateInjectionsGenerator
 
 		if (context.TargetSymbol is not INamedTypeSymbol)
 			return new([]);
+
+		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
+		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
+		var defaultUseProxyFactory = defaultsAttribute?.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 		return context.Attributes
 			.Select(attributeData =>
@@ -327,9 +337,10 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
+				var useProxy = useProxyValue is true;
 
-				if (factory != null && useProxy)
+				if (factory is { } && useProxy)
 					return null;
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
@@ -338,7 +349,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-					Implementation = targetSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
+					Implementation = targetSymbol.BuildImplementationArgument(useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
 					DuplicateStrategy = duplicateStrategy,
@@ -354,6 +365,10 @@ public sealed partial class ImmediateInjectionsGenerator
 
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: true } targetSymbol)
 			return new([]);
+
+		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
+		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
+		var defaultUseProxyFactory = defaultsAttribute?.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 
 		return context.Attributes
 			.Select(attributeData =>
@@ -388,9 +403,10 @@ public sealed partial class ImmediateInjectionsGenerator
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 				var duplicateStrategy = arguments.GetEnumArgumentValue("DuplicateStrategy");
-				var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
+				var useProxy = useProxyValue is true;
 
-				if (factory != null && useProxy)
+				if (factory is { } && useProxy)
 					return null;
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
@@ -399,7 +415,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-					Implementation = implementationSymbol.BuildImplementationArgument(useProxy, serviceKey is { }, factory),
+					Implementation = implementationSymbol.BuildImplementationArgument(useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
 					DuplicateStrategy = duplicateStrategy,
@@ -469,6 +485,20 @@ file static class Extensions
 			(true, false, _) => $"global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<{type}>",
 			(false, _, { }) => $"{type}.{factory}",
 			(false, _, null) => $"typeof({type})",
+		};
+	}
+
+	public static bool GetUseProxyFactoryValue(
+		this object? useProxyValue,
+		string? factory,
+		bool defaultUseProxyValue
+	)
+	{
+		return useProxyValue switch
+		{
+			true => true,
+			false => false,
+			_ => factory is null && defaultUseProxyValue,
 		};
 	}
 }

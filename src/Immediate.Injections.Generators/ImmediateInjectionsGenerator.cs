@@ -25,21 +25,10 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
 	{
 		var assemblyName = context.CompilationProvider
-			.Select((cp, _) =>
+			.Select((cp, _) => new
 			{
-				var assemblyName = cp.AssemblyName?
-					.Replace(".", string.Empty)
-					.Replace(" ", string.Empty)
-					.Trim()
-					?? "";
-
-				var languageVersion = (cp.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.CSharp12;
-
-				return new
-				{
-					AssemblyName = assemblyName,
-					LanguageVersion = languageVersion,
-				};
+				AssemblyName = cp.GetAssemblyIdentifier(),
+				LanguageVersion = (cp.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions)?.LanguageVersion ?? LanguageVersion.CSharp12,
 			})
 			.WithTrackingName("AssemblyName");
 
@@ -154,5 +143,25 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.WithTrackingName($"Register{lifetime}`2");
 
 		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 2);
+	}
+}
+
+file static class Extensions
+{
+	public static string GetAssemblyIdentifier(this Compilation compilation)
+	{
+		if (compilation.Assembly.GetAttributes()
+				.FirstOrDefault(a => a.AttributeClass.IsImmediateAssemblyIdentifierAttribute)
+				is { ConstructorArguments: [{ Value: string { Length: >= 1 } identifier }] }
+			&& identifier[0] != '@'
+			&& SyntaxFacts.IsValidIdentifier(identifier))
+		{
+			return identifier;
+		}
+
+		return compilation.AssemblyName!
+			.Replace(".", string.Empty)
+			.Replace(" ", string.Empty)
+			.Trim();
 	}
 }

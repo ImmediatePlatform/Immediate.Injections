@@ -58,6 +58,26 @@ internal static class ITypeSymbolExtensions
 				},
 			};
 
+		public bool IsImmediateAssemblyIdentifierAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "ImmediateAssemblyIdentifierAttribute",
+				ContainingNamespace:
+				{
+					Name: "Shared",
+					ContainingNamespace:
+					{
+						Name: "Handlers",
+						ContainingNamespace:
+						{
+							Name: "Immediate",
+							ContainingNamespace.IsGlobalNamespace: true,
+						},
+					},
+				},
+			};
+
 		public bool IsRegisterServicesAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{

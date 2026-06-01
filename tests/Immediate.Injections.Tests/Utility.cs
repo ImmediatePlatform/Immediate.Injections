@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Immediate.Handlers.Shared;
 using Immediate.Injections.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
@@ -34,6 +35,7 @@ public static class Utility
 	public static IEnumerable<MetadataReference> GetAdditionalReferences() =>
 	[
 		MetadataReference.CreateFromFile(typeof(RegisterServicesAttribute).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(HandlerAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 	];

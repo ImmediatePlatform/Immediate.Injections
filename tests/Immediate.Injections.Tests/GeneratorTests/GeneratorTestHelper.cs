@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Immediate.Handlers.Generators;
 using Immediate.Injections.Generators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -41,7 +42,7 @@ public static class GeneratorTestHelper
 		);
 
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(
-			generators: [new ImmediateInjectionsGenerator().AsSourceGenerator()],
+			generators: [new ImmediateInjectionsGenerator().AsSourceGenerator(), new ImmediateHandlersGenerator().AsSourceGenerator()],
 			parseOptions: parseOptions,
 			driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true)
 		);
@@ -99,10 +100,11 @@ public static class GeneratorTestHelper
 			{
 				Results:
 				[
-					{
-						TrackedOutputSteps: { } outputSteps,
-						TrackedSteps: { } trackedSteps,
-					}
+				{
+					TrackedOutputSteps: { } outputSteps,
+					TrackedSteps: { } trackedSteps,
+				},
+					_
 				],
 			}
 		)

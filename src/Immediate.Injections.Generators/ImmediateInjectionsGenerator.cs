@@ -104,7 +104,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		var classes = context.SyntaxProvider
 			.ForAttributeWithMetadataName(
 				attributeQualifiedName,
-				(node, _) => node is ClassDeclarationSyntax,
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
 				TransformRegisterClass0
 			)
 			.SelectMany((x, _) => x)
@@ -125,7 +125,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		var classes = context.SyntaxProvider
 			.ForAttributeWithMetadataName(
 				attributeQualifiedName,
-				(node, _) => node is ClassDeclarationSyntax,
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
 				TransformRegisterClass1
 			)
 			.SelectMany((x, _) => x)
@@ -146,7 +146,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		var classes = context.SyntaxProvider
 			.ForAttributeWithMetadataName(
 				attributeQualifiedName,
-				(node, _) => node is ClassDeclarationSyntax,
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
 				TransformRegisterClass2
 			)
 			.SelectMany((x, _) => x)

@@ -92,7 +92,7 @@ public class MyService : IMyService { }
 Controls what happens when a registration for the same service type already exists.
 
 | Value | Generated call |
-|---|---|---|
+|---|---|
 | `Append` (default) | `services.Add(...)` |
 | `Skip` | `services.TryAdd(...)` |
 | `Replace` | `services.Replace(...)` |

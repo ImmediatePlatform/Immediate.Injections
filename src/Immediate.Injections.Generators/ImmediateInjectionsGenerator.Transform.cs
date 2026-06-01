@@ -284,7 +284,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				{
 					return new RegisterClass
 					{
-						ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+						ServiceType = serviceSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
 						Implementation = targetSymbol.BuildImplementationArgument(
 							useProxy: useProxy,
 							isKeyed: serviceKey is { },
@@ -368,7 +368,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				return new RegisterClass
 				{
-					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+					ServiceType = serviceSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
 					Implementation = targetSymbol.BuildImplementationArgument(
 						useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
 						isKeyed: serviceKey is { },
@@ -438,7 +438,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 				return new RegisterClass
 				{
-					ServiceType = serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+					ServiceType = serviceSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
 					Implementation = implementationSymbol.BuildImplementationArgument(useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory), serviceKey is { }, factory),
 					Tags = tags,
 					ServiceKey = serviceKey,
@@ -501,7 +501,7 @@ file static class Extensions
 		string? factory
 	)
 	{
-		var type = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+		var type = typeSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
 
 		return (useProxy, isKeyed, factory) switch
 		{

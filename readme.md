@@ -8,6 +8,8 @@
 [![GitHub Actions](https://github.com/ImmediatePlatform/Immediate.Injections/actions/workflows/build.yml/badge.svg)](https://github.com/ImmediatePlatform/Immediate.Injections/actions)
 ---
 
+Incremental source generator that helps register attribute-decorated services with `Microsoft.Extensions.DependencyInjection` container in one fell swoop. Supports multiple registration strategies, duplicate-handling strategies, tagging, and much more.
+
 ## Installation
 
 ```
@@ -60,14 +62,14 @@ All three lifetime attributes — `RegisterSingleton`, `RegisterScoped`, `Regist
 Registers the class as the specified service type. The class must be assignable to it.
 
 ```cs
-[RegisterSingleton(ServiceType = typeof(IMyService))]
+[RegisterSingleton<IMyService>]
 public class MyService : IMyService { }
 ```
 
-Alternatively, on .NET versions that support generic attributes:
+Alternatively
 
 ```cs
-[RegisterSingleton<IMyService>]
+[RegisterSingleton(ServiceType = typeof(IMyService))]
 public class MyService : IMyService { }
 ```
 
@@ -181,6 +183,7 @@ public static class ManualRegistrations
 * `RegistrationStrategy.SelfWithInterfaces` becomes `RegistrationStrategy.SelfAndImplementedInterfaces`
 * `Duplicate = DuplicateStrategy.Replace` becomes `DuplicateStrategy = DuplicateStrategy.Replace`
 * Assembly name override moves from MSBuild property to `[ImmediateAssemblyIdentifier]` attribute
+* Add `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces)]` to get the default Injectio behaviour
 
 ### From AutoRegisterInject
 

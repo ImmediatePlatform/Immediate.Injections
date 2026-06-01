@@ -8,4 +8,11 @@ internal static class DisplayNameFormatters
 		SymbolDisplayFormat.FullyQualifiedFormat
 			.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType);
 
+	public static readonly SymbolDisplayFormat FullyQualifiedWithNullableFormat =
+		SymbolDisplayFormat.FullyQualifiedFormat
+			.WithMiscellaneousOptions(
+				SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions
+				| SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+			);
+
 }

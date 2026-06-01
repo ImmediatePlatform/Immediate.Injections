@@ -36,6 +36,36 @@ public sealed class RegisterClass_TService_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task Record_IsRegistered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService;
+
+			[Register{{lifetime}}<IService>]
+			public record Service : IService
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
 	public async Task TService_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(

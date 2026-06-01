@@ -170,3 +170,19 @@ public static class ManualRegistrations
     public static void RegisterWithTags(IServiceCollection services, ReadOnlySpan<string> tags) { ... }
 }
 ```
+
+***
+
+## Migration
+
+### From Injectio
+
+* `Tags = "foo,bar"` becomes `Tags = ["foo", "bar"]`
+* `RegistrationStrategy.SelfWithInterfaces` becomes `RegistrationStrategy.SelfAndImplementedInterfaces`
+* `Duplicate = DuplicateStrategy.Replace` becomes `DuplicateStrategy = DuplicateStrategy.Replace`
+* Assembly name override moves from MSBuild property to `[ImmediateAssemblyIdentifier]` attribute
+
+### From AutoRegisterInject
+
+* Add `[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]` to get the default ARI behaviour
+* `[TryRegister*]` attributes become `DuplicateStrategy = DuplicateStrategy.Skip`

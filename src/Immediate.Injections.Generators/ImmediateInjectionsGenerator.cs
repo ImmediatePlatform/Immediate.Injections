@@ -159,7 +159,7 @@ file static class Extensions
 			return identifier;
 		}
 
-		return compilation.AssemblyName!
+		return (compilation.AssemblyName ?? string.Empty)
 			.Replace(".", string.Empty)
 			.Replace(" ", string.Empty)
 			.Trim();

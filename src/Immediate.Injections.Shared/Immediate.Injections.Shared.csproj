@@ -8,7 +8,7 @@
 	<Features>runtime-async=on</Features>
   </PropertyGroup>
 
-  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">
+  <ItemGroup>
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 

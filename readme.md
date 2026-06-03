@@ -6,6 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/ImmediatePlatform/Immediate.Injections.svg)](https://GitHub.com/ImmediatePlatform/Immediate.Injections/issues/) 
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/ImmediatePlatform/Immediate.Injections.svg)](https://GitHub.com/ImmediatePlatform/Immediate.Injections/issues?q=is%3Aissue+is%3Aclosed) 
 [![GitHub Actions](https://github.com/ImmediatePlatform/Immediate.Injections/actions/workflows/build.yml/badge.svg)](https://github.com/ImmediatePlatform/Immediate.Injections/actions)
+[![Coverage Status](https://coveralls.io/repos/github/ImmediatePlatform/Immediate.Injections/badge.svg)](https://coveralls.io/github/ImmediatePlatform/Immediate.Injections)
 ---
 
 Immediate.Injections is a support package for `Microsoft.Extensions.DependencyInjection` which allows declaring

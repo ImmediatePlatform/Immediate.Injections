@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
 	<OutputType>Exe</OutputType>
 	<_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>
@@ -50,10 +49,6 @@
 	<ProjectReference Include="../../src/Immediate.Injections.Analyzers/Immediate.Injections.Analyzers.csproj" />
 	<ProjectReference Include="../../src/Immediate.Injections.Generators/Immediate.Injections.Generators.csproj" />
 	<Reference Include="$(PkgImmediate_Handlers)/analyzers/roslyn4.8/dotnet/cs/Immediate.Handlers.Generators.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-	<Compile Include="../../src/Immediate.Injections.Analyzers/DiagnosticIds.cs" />
   </ItemGroup>
 
 </Project>

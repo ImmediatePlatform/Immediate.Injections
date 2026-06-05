@@ -2,6 +2,13 @@
 <Configuration>
     <CodeCoverage>
 
+		<!-- Match assembly file paths: -->
+		<ModulePaths>
+			<Exclude>
+				<ModulePath>.*Immediate.Handlers.Generators.dll$</ModulePath>
+			</Exclude>
+		</ModulePaths>
+
         <!-- Match attributes on any code element: -->
         <Attributes>
             <Exclude>
@@ -13,7 +20,7 @@
             </Exclude>
         </Attributes>
 
-        <EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
+		<EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
         <EnableDynamicManagedInstrumentation>True</EnableDynamicManagedInstrumentation>
 
     </CodeCoverage>

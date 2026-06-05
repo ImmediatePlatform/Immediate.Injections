@@ -13,6 +13,13 @@
             </Exclude>
         </Attributes>
 
+		<!-- Match the path of the source files in which each method is defined: -->
+		<Sources>
+			<Exclude>
+				<Source>.*\\Immediate.Handlers\\.*</Source>
+			</Exclude>
+		</Sources>
+
         <EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
         <EnableDynamicManagedInstrumentation>True</EnableDynamicManagedInstrumentation>
 

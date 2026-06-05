@@ -25,13 +25,13 @@
 	-->
   <ItemGroup>
 	<None Include="../../readme.md" Pack="true" PackagePath="/" />
-	<None Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Analyzers.dll" Pack="true" PackagePath="analyzers/roslyn4.8/dotnet/cs" Visible="true" />
-	<None Include="../Immediate.Injections.Generators/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Generators.dll" Pack="true" PackagePath="analyzers/roslyn4.8/dotnet/cs" Visible="true" />
+	<None Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.8/cs" Visible="true" />
+	<None Include="../Immediate.Injections.Generators/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.8/cs" Visible="true" />
 
 	<TfmSpecificPackageFile
 	  Include="$(PkgScriban)/lib/netstandard2.0/Scriban.dll"
 	  Pack="true"
-	  PackagePath="analyzers/roslyn4.8/dotnet/cs"
+	  PackagePath="analyzers/dotnet/roslyn4.8/cs"
 	  Condition=" '$(TargetFramework)' == 'net8.0' " />
 
 	<TfmSpecificPackageFile

@@ -48,7 +48,7 @@
 	<ProjectReference Include="../../src/Immediate.Injections.Shared/Immediate.Injections.Shared.csproj" />
 	<ProjectReference Include="../../src/Immediate.Injections.Analyzers/Immediate.Injections.Analyzers.csproj" />
 	<ProjectReference Include="../../src/Immediate.Injections.Generators/Immediate.Injections.Generators.csproj" />
-	<Reference Include="$(PkgImmediate_Handlers)/analyzers/roslyn4.8/dotnet/cs/Immediate.Handlers.Generators.dll" />
+	<Reference Include="$(PkgImmediate_Handlers)/analyzers/dotnet/roslyn4.8/cs/Immediate.Handlers.Generators.dll" />
   </ItemGroup>
 
 </Project>

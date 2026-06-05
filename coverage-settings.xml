@@ -2,6 +2,13 @@
 <Configuration>
     <CodeCoverage>
 
+		<!-- Match assembly file paths: -->
+		<ModulePaths>
+			<Exclude>
+				<ModulePath>.*Immediate.Handlers.Generator.dll$</ModulePath>
+			</Exclude>
+		</ModulePaths>
+
         <!-- Match attributes on any code element: -->
         <Attributes>
             <Exclude>
@@ -13,14 +20,7 @@
             </Exclude>
         </Attributes>
 
-		<!-- Match the path of the source files in which each method is defined: -->
-		<Sources>
-			<Exclude>
-				<Source>.*\\Immediate.Handlers\\.*</Source>
-			</Exclude>
-		</Sources>
-
-        <EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
+		<EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
         <EnableDynamicManagedInstrumentation>True</EnableDynamicManagedInstrumentation>
 
     </CodeCoverage>

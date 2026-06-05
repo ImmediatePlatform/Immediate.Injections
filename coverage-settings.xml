@@ -5,7 +5,7 @@
 		<!-- Match assembly file paths: -->
 		<ModulePaths>
 			<Exclude>
-				<ModulePath>.*Immediate.Handlers.Generator.dll$</ModulePath>
+				<ModulePath>.*Immediate.Handlers.Generators.dll$</ModulePath>
 			</Exclude>
 		</ModulePaths>
 

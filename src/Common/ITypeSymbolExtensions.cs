@@ -93,6 +93,38 @@ internal static class ITypeSymbolExtensions
 				Name: "RegistrationDefaultsAttribute",
 				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
+
+		public bool IsRegisterTypeAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0 or 1 or 2,
+				Name: "RegisterScopedAttribute" or "RegisterSingletonAttribute" or "RegisterTransientAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
+		public bool IsRegisterType0Attribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "RegisterScopedAttribute" or "RegisterSingletonAttribute" or "RegisterTransientAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
+		public bool IsRegisterType1Attribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 1,
+				Name: "RegisterScopedAttribute" or "RegisterSingletonAttribute" or "RegisterTransientAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
+		public bool IsRegisterType2Attribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 2,
+				Name: "RegisterScopedAttribute" or "RegisterSingletonAttribute" or "RegisterTransientAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
 	}
 
 	extension(INamedTypeSymbol typeSymbol)

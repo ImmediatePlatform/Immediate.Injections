@@ -56,7 +56,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				token.ThrowIfCancellationRequested();
 
 				var arguments = attributeData.NamedArguments;
-				var serviceType = arguments.GetArgumentValue("ServiceType")?.GetArgumentType();
+				var serviceType = arguments.GetArgumentValue("ServiceType")?.ArgumentType;
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
@@ -452,48 +452,6 @@ public sealed partial class ImmediateInjectionsGenerator
 
 file static class Extensions
 {
-	public static TypedConstant? GetArgumentValue(this ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name)
-	{
-		foreach (var argument in arguments)
-		{
-			if (string.Equals(name, argument.Key, StringComparison.Ordinal))
-				return argument.Value;
-		}
-
-		return null;
-	}
-
-	public static string? GetEnumArgumentValue(this ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name) =>
-		arguments.GetArgumentValue(name)?.GetEnumValueName();
-
-	public static string GetEnumValueName(this TypedConstant constant)
-	{
-		var fullName = constant.ToCSharpString();
-		var start = fullName.LastIndexOf('.');
-		return fullName[(start + 1)..];
-	}
-
-	public static string? GetStringArray(this TypedConstant constant)
-	{
-		if (constant.Kind != TypedConstantKind.Array)
-			return null;
-
-		return string.Join(
-			", ",
-			constant.Values
-				.Select(tc => tc.ToCSharpString())
-				.OrderBy(x => x, StringComparer.Ordinal)
-		);
-	}
-
-	public static INamedTypeSymbol? GetArgumentType(this TypedConstant constant)
-	{
-		if (constant.Kind != TypedConstantKind.Type)
-			return null;
-
-		return constant.Value as INamedTypeSymbol;
-	}
-
 	public static string BuildImplementationArgument(
 		this INamedTypeSymbol typeSymbol,
 		bool useProxy,

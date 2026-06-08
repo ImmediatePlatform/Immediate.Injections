@@ -19,6 +19,18 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			customTags: [WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.Unnecessary]
 		);
 
+	public static readonly DiagnosticDescriptor ServiceTypeAndRegistrationStrategyIncompatible =
+		new(
+			id: DiagnosticIds.INJ0003ServiceTypeAndRegistrationStrategyIncompatible,
+			title: "`ServiceType` and `RegistrationStrategy` are incompatible parameters",
+			messageFormat: "Class '{0}' has attribute `[{1}]` applied with incompatible `ServiceType` and `RegistrationStrategy` parameters",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "`ServiceType` and `RegistrationStrategy` are incompatible parameters; providing both is an invalid scenario.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
 		ImmutableArray.Create([
 			AttributeIsInvalid,
@@ -93,6 +105,12 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 	)
 	{
 		var diagnostics = new List<DiagnosticDescriptor>();
+
+		if (arguments.GetArgumentValue("ServiceType") is { }
+			&& arguments.GetArgumentValue("RegistrationStrategy") is { })
+		{
+			diagnostics.Add(ServiceTypeAndRegistrationStrategyIncompatible);
+		}
 
 		return diagnostics;
 	}

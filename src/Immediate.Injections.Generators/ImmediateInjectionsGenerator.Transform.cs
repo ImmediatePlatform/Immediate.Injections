@@ -387,7 +387,7 @@ public sealed partial class ImmediateInjectionsGenerator
 	{
 		token.ThrowIfCancellationRequested();
 
-		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: true } targetSymbol)
+		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
 			return new([]);
 
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
@@ -405,8 +405,8 @@ public sealed partial class ImmediateInjectionsGenerator
 					{
 						TypeArguments:
 						[
-						INamedTypeSymbol { IsGenericType: true } serviceSymbol,
-						INamedTypeSymbol { IsGenericType: true } implementationSymbol
+						INamedTypeSymbol serviceSymbol,
+						INamedTypeSymbol implementationSymbol
 						],
 					}
 					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol))

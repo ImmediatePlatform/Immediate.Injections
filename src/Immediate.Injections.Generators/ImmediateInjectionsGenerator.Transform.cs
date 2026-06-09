@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -414,14 +413,9 @@ public sealed partial class ImmediateInjectionsGenerator
 					return null;
 				}
 
-				if (
-					context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol) is not (
-					{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-					)
-				)
-				{
+				var conversion = context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol);
+				if (conversion is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
 					return null;
-				}
 
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
@@ -430,8 +424,14 @@ public sealed partial class ImmediateInjectionsGenerator
 				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
 				var useProxy = useProxyValue is true;
 
-				if (factory is { } && useProxy)
-					return null;
+				if (useProxy)
+				{
+					if (factory is { })
+						return null;
+
+					if (conversion is { IsIdentity: true })
+						return null;
+				}
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;

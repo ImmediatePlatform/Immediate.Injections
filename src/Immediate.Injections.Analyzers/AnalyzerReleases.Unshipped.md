@@ -8,3 +8,5 @@ INJ0003 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0004 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0005 | ImmediateInjections | Info | RegisterTypeAnalyzer
 INJ0006 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0007 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0008 | ImmediateInjections | Error | RegisterTypeAnalyzer

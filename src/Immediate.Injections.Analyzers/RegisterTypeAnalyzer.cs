@@ -67,6 +67,34 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
+	public static readonly DiagnosticDescriptor CannotUseProxyFactoryOnSelf =
+		new(
+			id: DiagnosticIds.INJ0007CannotUseProxyFactoryOnSelf,
+			title: "`UseProxyFactory` cannot be `true` when registering target as self",
+			messageFormat: "Cannot register type `{0}` as itself when using a proxy",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description:
+				"`UseProxyFactory` is used to register a proxy method which will return the instance of the target class. "
+				+ "Proxying a type to itself will produce an infinite loop.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
+	public static readonly DiagnosticDescriptor CannotUseProxyFactoryForOpenGeneric =
+		new(
+			id: DiagnosticIds.INJ0008CannotUseProxyFactoryForOpenGeneric,
+			title: "`UseProxyFactory` cannot be true when registering an open generic",
+			messageFormat: "Cannot register type `{0}` using a proxy for an open generic",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description:
+				"`UseProxyFactory` is used to register a proxy method which will return the instance of the target class. "
+				+ "The container for MSDI does not support creating a proxy for an open generic.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
 		ImmutableArray.Create([
 			AttributeIsInvalid,
@@ -74,6 +102,8 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			ServiceTypeIncompatibleWithTarget,
 			TargetClassIsNotGeneric,
 			TImplementationIsNotSameAsTarget,
+			CannotUseProxyFactoryOnSelf,
+			CannotUseProxyFactoryForOpenGeneric,
 		]);
 
 	public override void Initialize(AnalysisContext context)
@@ -139,9 +169,16 @@ file sealed class TypeAnalyzer(
 	{
 		var valid = true;
 
-		var arguments = attribute.NamedArguments;
+		var assemblyAttributes = context.Compilation.Assembly.GetAttributes();
+		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
+		var defaultRegistration = defaultsAttribute?.NamedArguments.GetEnumArgumentValue("RegistrationStrategy") ?? "None";
 
-		if (arguments.GetArgumentValue("ServiceType")?.ArgumentType is { } serviceTypeSymbol)
+		var arguments = attribute.NamedArguments;
+		var serviceType = arguments.GetArgumentValue("ServiceType")?.ArgumentType;
+		var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+		var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType is { } ? "None" : defaultRegistration);
+
+		if (serviceType is { })
 		{
 			if (arguments.GetArgumentValue("RegistrationStrategy") is { })
 			{
@@ -157,11 +194,82 @@ file sealed class TypeAnalyzer(
 				valid = false;
 			}
 
-			if (!ImplementsService(containerSymbol, serviceTypeSymbol))
+			var conversionType = ImplementsService(containerSymbol, serviceType);
+			if (conversionType is ConversionType.Invalid)
 				valid = false;
+
+			if (useProxy)
+			{
+				if (conversionType is ConversionType.Identity)
+				{
+					context.ReportDiagnostic(
+						Diagnostic.Create(
+							RegisterTypeAnalyzer.CannotUseProxyFactoryOnSelf,
+							location,
+							containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+						)
+					);
+
+					valid = false;
+				}
+
+				if (serviceType.IsUnboundGenericType)
+				{
+					context.ReportDiagnostic(
+						Diagnostic.Create(
+							RegisterTypeAnalyzer.CannotUseProxyFactoryForOpenGeneric,
+							location,
+							containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+						)
+					);
+
+					valid = false;
+				}
+			}
 		}
-		else
+
+		switch (registrationStrategy)
 		{
+			case null:
+			case "None":
+			{
+				if (serviceType is null)
+					goto case "Self";
+
+				break;
+			}
+
+			case "Self":
+			{
+				if (useProxy)
+				{
+					context.ReportDiagnostic(
+						Diagnostic.Create(
+							RegisterTypeAnalyzer.CannotUseProxyFactoryOnSelf,
+							location,
+							containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+						)
+					);
+
+					valid = false;
+				}
+
+				break;
+			}
+
+			case "ImplementedInterfaces":
+			{
+				break;
+			}
+
+			case "SelfAndImplementedInterfaces":
+			{
+				break;
+			}
+
+			default:
+				valid = false;
+				break;
 		}
 
 		return valid;
@@ -182,8 +290,23 @@ file sealed class TypeAnalyzer(
 			return valid;
 		}
 
-		if (!ImplementsService(containerSymbol, serviceTypeSymbol))
+		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
+		if (conversionType is ConversionType.Invalid)
 			valid = false;
+
+		var useProxy = attribute.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+		if (conversionType is ConversionType.Identity && useProxy)
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.CannotUseProxyFactoryOnSelf,
+					location,
+					containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+				)
+			);
+
+			valid = false;
+		}
 
 		return valid;
 	}
@@ -233,32 +356,49 @@ file sealed class TypeAnalyzer(
 			valid = false;
 		}
 
-		if (!ImplementsService(implementationTypeSymbol, serviceTypeSymbol))
+		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
+		if (conversionType is ConversionType.Invalid)
 			valid = false;
+
+		var useProxy = attribute.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+		if (conversionType is ConversionType.Identity && useProxy)
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.CannotUseProxyFactoryOnSelf,
+					location,
+					containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+				)
+			);
+
+			valid = false;
+		}
 
 		return valid;
 	}
 
-	private bool ImplementsService(
+	private ConversionType ImplementsService(
 		INamedTypeSymbol implementationTypeSymbol,
 		INamedTypeSymbol serviceTypeSymbol
 	)
 	{
-		if (Core(implementationTypeSymbol, serviceTypeSymbol))
-			return true;
+		var conversion = Core(implementationTypeSymbol, serviceTypeSymbol);
 
-		context.ReportDiagnostic(
-			Diagnostic.Create(
-				RegisterTypeAnalyzer.ServiceTypeIncompatibleWithTarget,
-				location,
-				implementationTypeSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat),
-				serviceTypeSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat)
-			)
-		);
+		if (conversion is ConversionType.Invalid)
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.ServiceTypeIncompatibleWithTarget,
+					location,
+					implementationTypeSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat),
+					serviceTypeSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat)
+				)
+			);
+		}
 
-		return false;
+		return conversion;
 
-		bool Core(
+		ConversionType Core(
 			INamedTypeSymbol implementationTypeSymbol,
 			INamedTypeSymbol serviceTypeSymbol
 		)
@@ -268,7 +408,7 @@ file sealed class TypeAnalyzer(
 				return Implements(implementationTypeSymbol, serviceTypeSymbol);
 
 			if (implementationTypeSymbol.Arity != serviceTypeSymbol.Arity)
-				return false;
+				return ConversionType.Invalid;
 
 			if (serviceTypeSymbol.IsUnboundGenericType)
 			{
@@ -292,16 +432,27 @@ file sealed class TypeAnalyzer(
 				);
 			}
 
-			return false;
+			return ConversionType.Invalid;
 		}
 
-		bool Implements(
+		ConversionType Implements(
 			INamedTypeSymbol implementationTypeSymbol,
 			INamedTypeSymbol serviceTypeSymbol
 		)
 		{
-			return context.Compilation.ClassifyConversion(implementationTypeSymbol, serviceTypeSymbol) is
-			{ IsIdentity: true } or { IsImplicit: true, IsReference: true };
+			return context.Compilation.ClassifyConversion(implementationTypeSymbol, serviceTypeSymbol) switch
+			{
+				{ IsIdentity: true } => ConversionType.Identity,
+				{ IsImplicit: true, IsReference: true } => ConversionType.Implicit,
+				_ => ConversionType.Invalid,
+			};
 		}
+	}
+
+	private enum ConversionType
+	{
+		Invalid = 0,
+		Identity = 1,
+		Implicit = 2,
 	}
 }

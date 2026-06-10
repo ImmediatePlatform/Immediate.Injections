@@ -239,7 +239,7 @@ file sealed class TypeAnalyzer(
 		var serviceKey = arguments.GetArgumentValue("ServiceKey");
 		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
 
-		if (!AnalyzeFactory(factory, serviceKey is { }, useProxy))
+		if (!AnalyzeFactory(factory, serviceKey is { }, useProxy, registrationStrategy))
 			valid = false;
 
 		if (serviceType is { })
@@ -550,14 +550,14 @@ file sealed class TypeAnalyzer(
 		Implicit = 2,
 	}
 
-	private bool AnalyzeFactory(string? factory, bool isKeyed, bool useProxy)
+	private bool AnalyzeFactory(string? factory, bool isKeyed, bool useProxy, string registrationStrategy = "")
 	{
 		if (factory is null)
 			return true;
 
 		var valid = true;
 
-		if (useProxy)
+		if (useProxy && !string.Equals(registrationStrategy, "SelfAndImplementedInterfaces", StringComparison.Ordinal))
 		{
 			context.ReportDiagnostic(
 				Diagnostic.Create(

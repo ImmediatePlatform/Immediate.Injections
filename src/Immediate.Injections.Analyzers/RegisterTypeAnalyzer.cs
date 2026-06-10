@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -95,6 +96,60 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
+	public static readonly DiagnosticDescriptor FactoryMethodDoesNotExist =
+		new(
+			id: DiagnosticIds.INJ0009FactoryMethodDoesNotExist,
+			title: "Factory Method does not exist",
+			messageFormat: "Method `{0}.{1}` specified by the `Factory` parameter does not exist",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "When specifying a factory method, it must point to a method that exists.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
+	public static readonly DiagnosticDescriptor FactoryMethodIsInvalid =
+		new(
+			id: DiagnosticIds.INJ0010FactoryMethodIsInvalid,
+			title: "Factory methods must have the correct signature",
+			messageFormat: "Method `{0}.{1}` specified by the `Factory` parameter has an invalid signature",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description:
+				"Factory methods must be `static T Method(IServiceProvider)` for non-keyed registrations "
+				+ "or `static T Method(IServiceProvider, object)` for keyed registrations.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
+	public static readonly DiagnosticDescriptor CannotUseFactoryMethodWithProxy =
+		new(
+			id: DiagnosticIds.INJ0011CannotUseFactoryMethodWithProxy,
+			title: "`Factory` and `UseProxyFactory` parameters are incompatible",
+			messageFormat: "Type `{0}` cannot use both `Factory` and `UseProxyFactory` parameters",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description:
+				"`Factory` and `UseProxyFactory` both use the same factory parameter for registration; "
+				+ "a single registration cannot use both.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
+	public static readonly DiagnosticDescriptor CannotUseFactoryMethodWithOpenGeneric =
+		new(
+			id: DiagnosticIds.INJ0012CannotUseFactoryMethodWithOpenGeneric,
+			title: "`Factory` cannot be provided when registering an open generic",
+			messageFormat: "Cannot register type `{0}` using a factory for an open generic",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description:
+				"`Factory` is used to register a proxy method which will return the instance of the target class. "
+				+ "The container for MSDI does not support creating a proxy for an open generic.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
 		ImmutableArray.Create([
 			AttributeIsInvalid,
@@ -104,6 +159,10 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			TImplementationIsNotSameAsTarget,
 			CannotUseProxyFactoryOnSelf,
 			CannotUseProxyFactoryForOpenGeneric,
+			FactoryMethodDoesNotExist,
+			FactoryMethodIsInvalid,
+			CannotUseFactoryMethodWithProxy,
+			CannotUseFactoryMethodWithOpenGeneric,
 		]);
 
 	public override void Initialize(AnalysisContext context)
@@ -177,6 +236,11 @@ file sealed class TypeAnalyzer(
 		var serviceType = arguments.GetArgumentValue("ServiceType")?.ArgumentType;
 		var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
 		var registrationStrategy = arguments.GetEnumArgumentValue("RegistrationStrategy") ?? (serviceType is { } ? "None" : defaultRegistration);
+		var serviceKey = arguments.GetArgumentValue("ServiceKey");
+		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+
+		if (!AnalyzeFactory(factory, serviceKey is { }, useProxy))
+			valid = false;
 
 		if (serviceType is { })
 		{
@@ -225,6 +289,20 @@ file sealed class TypeAnalyzer(
 
 					valid = false;
 				}
+			}
+
+			if (serviceType.IsUnboundGenericType
+				&& factory is { })
+			{
+				context.ReportDiagnostic(
+					Diagnostic.Create(
+						RegisterTypeAnalyzer.CannotUseFactoryMethodWithOpenGeneric,
+						location,
+						containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+					)
+				);
+
+				valid = false;
 			}
 		}
 
@@ -294,7 +372,15 @@ file sealed class TypeAnalyzer(
 		if (conversionType is ConversionType.Invalid)
 			valid = false;
 
-		var useProxy = attribute.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+		var arguments = attribute.NamedArguments;
+
+		var serviceKey = arguments.GetArgumentValue("ServiceKey");
+		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+		var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+
+		if (!AnalyzeFactory(factory, serviceKey is { }, useProxy))
+			valid = false;
+
 		if (conversionType is ConversionType.Identity && useProxy)
 		{
 			context.ReportDiagnostic(
@@ -360,7 +446,15 @@ file sealed class TypeAnalyzer(
 		if (conversionType is ConversionType.Invalid)
 			valid = false;
 
-		var useProxy = attribute.NamedArguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+		var arguments = attribute.NamedArguments;
+
+		var serviceKey = arguments.GetArgumentValue("ServiceKey");
+		var factory = arguments.GetArgumentValue("Factory")?.Value as string;
+		var useProxy = arguments.GetArgumentValue("UseProxyFactory")?.Value is true;
+
+		if (!AnalyzeFactory(factory, serviceKey is { }, useProxy))
+			valid = false;
+
 		if (conversionType is ConversionType.Identity && useProxy)
 		{
 			context.ReportDiagnostic(
@@ -454,5 +548,60 @@ file sealed class TypeAnalyzer(
 		Invalid = 0,
 		Identity = 1,
 		Implicit = 2,
+	}
+
+	private bool AnalyzeFactory(string? factory, bool isKeyed, bool useProxy)
+	{
+		if (factory is null)
+			return true;
+
+		var valid = true;
+
+		if (useProxy)
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.CannotUseFactoryMethodWithProxy,
+					location,
+					containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat)
+				)
+			);
+
+			valid = false;
+		}
+
+		var methods = containerSymbol.GetMembers()
+			.OfType<IMethodSymbol>()
+			.Where(ims => string.Equals(ims.Name, factory, StringComparison.Ordinal));
+
+		if (!methods.Any())
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.FactoryMethodDoesNotExist,
+					location,
+					containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat),
+					factory
+				)
+			);
+
+			return false;
+		}
+
+		if (!containerSymbol.IsValidFactoryMethod(factory, isKeyed))
+		{
+			context.ReportDiagnostic(
+				Diagnostic.Create(
+					RegisterTypeAnalyzer.FactoryMethodIsInvalid,
+					location,
+					containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat),
+					factory
+				)
+			);
+
+			return false;
+		}
+
+		return valid;
 	}
 }

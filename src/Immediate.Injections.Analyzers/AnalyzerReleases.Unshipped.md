@@ -10,3 +10,7 @@ INJ0005 | ImmediateInjections | Info | RegisterTypeAnalyzer
 INJ0006 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0007 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0008 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0009 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0010 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0011 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0012 | ImmediateInjections | Error | RegisterTypeAnalyzer

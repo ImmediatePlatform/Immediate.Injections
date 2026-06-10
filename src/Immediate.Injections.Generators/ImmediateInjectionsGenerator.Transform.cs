@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -56,7 +55,7 @@ public sealed partial class ImmediateInjectionsGenerator
 				token.ThrowIfCancellationRequested();
 
 				var arguments = attributeData.NamedArguments;
-				var serviceType = arguments.GetArgumentValue("ServiceType")?.GetArgumentType();
+				var serviceType = arguments.GetArgumentValue("ServiceType")?.ArgumentType;
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
 				var factory = arguments.GetArgumentValue("Factory")?.Value as string;
@@ -387,7 +386,7 @@ public sealed partial class ImmediateInjectionsGenerator
 	{
 		token.ThrowIfCancellationRequested();
 
-		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: true } targetSymbol)
+		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
 			return new([]);
 
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
@@ -405,8 +404,8 @@ public sealed partial class ImmediateInjectionsGenerator
 					{
 						TypeArguments:
 						[
-						INamedTypeSymbol { IsGenericType: true } serviceSymbol,
-						INamedTypeSymbol { IsGenericType: true } implementationSymbol
+						INamedTypeSymbol serviceSymbol,
+						INamedTypeSymbol implementationSymbol
 						],
 					}
 					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol))
@@ -414,14 +413,9 @@ public sealed partial class ImmediateInjectionsGenerator
 					return null;
 				}
 
-				if (
-					context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol) is not (
-					{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
-					)
-				)
-				{
+				var conversion = context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol);
+				if (conversion is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
 					return null;
-				}
 
 				var tags = arguments.GetArgumentValue("Tags")?.GetStringArray();
 				var serviceKey = arguments.GetArgumentValue("ServiceKey")?.ToCSharpString().NullIf("null");
@@ -430,8 +424,14 @@ public sealed partial class ImmediateInjectionsGenerator
 				var useProxyValue = arguments.GetArgumentValue("UseProxyFactory")?.Value;
 				var useProxy = useProxyValue is true;
 
-				if (factory is { } && useProxy)
-					return null;
+				if (useProxy)
+				{
+					if (factory is { })
+						return null;
+
+					if (conversion is { IsIdentity: true })
+						return null;
+				}
 
 				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;
@@ -452,48 +452,6 @@ public sealed partial class ImmediateInjectionsGenerator
 
 file static class Extensions
 {
-	public static TypedConstant? GetArgumentValue(this ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name)
-	{
-		foreach (var argument in arguments)
-		{
-			if (string.Equals(name, argument.Key, StringComparison.Ordinal))
-				return argument.Value;
-		}
-
-		return null;
-	}
-
-	public static string? GetEnumArgumentValue(this ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name) =>
-		arguments.GetArgumentValue(name)?.GetEnumValueName();
-
-	public static string GetEnumValueName(this TypedConstant constant)
-	{
-		var fullName = constant.ToCSharpString();
-		var start = fullName.LastIndexOf('.');
-		return fullName[(start + 1)..];
-	}
-
-	public static string? GetStringArray(this TypedConstant constant)
-	{
-		if (constant.Kind != TypedConstantKind.Array)
-			return null;
-
-		return string.Join(
-			", ",
-			constant.Values
-				.Select(tc => tc.ToCSharpString())
-				.OrderBy(x => x, StringComparer.Ordinal)
-		);
-	}
-
-	public static INamedTypeSymbol? GetArgumentType(this TypedConstant constant)
-	{
-		if (constant.Kind != TypedConstantKind.Type)
-			return null;
-
-		return constant.Value as INamedTypeSymbol;
-	}
-
 	public static string BuildImplementationArgument(
 		this INamedTypeSymbol typeSymbol,
 		bool useProxy,

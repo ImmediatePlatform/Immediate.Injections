@@ -219,6 +219,37 @@ public sealed class RegisterClass_TService_Tests
 
 	[Theory]
 	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
+	public async Task UseProxyWithSelf_NotRegistered(string lifetime)
+	{
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
+			using System;
+
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.DependencyInjection;
+			
+			public interface IService;
+
+			[Register{{lifetime}}<Service>(UseProxyFactory = true)]
+			public sealed class Service : IService
+			{
+			}
+			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
+		_ = await VerifyIgnoreCommonFile(result)
+			.UseParameters(lifetime);
+	}
+
+	[Theory]
+	[MemberData(nameof(Lifetimes), MemberType = typeof(Utility))]
 	public async Task KeyedUseProxy_Registered(string lifetime)
 	{
 		var result = GeneratorTestHelper.RunGenerator(

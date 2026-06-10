@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,8 +47,8 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 	public static readonly DiagnosticDescriptor TargetClassIsNotGeneric =
 		new(
 			id: DiagnosticIds.INJ0005TargetClassIsNotGeneric,
-			title: "RegisterXxx<,> requires a generic target",
-			messageFormat: "Type `{0}` is not generic",
+			title: "RegisterXxx<,> is redundant when the target type is not generic",
+			messageFormat: "Specifying `TImplementation` as `{0}` is redundant",
 			category: "ImmediateInjections",
 			defaultSeverity: DiagnosticSeverity.Info,
 			isEnabledByDefault: true,
@@ -92,7 +91,7 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			isEnabledByDefault: true,
 			description:
 				"`UseProxyFactory` is used to register a proxy method which will return the instance of the target class. "
-				+ "The container for MSDI does not support creating a proxy for an open generic.",
+				+ "MSDI does not support creating a proxy for an open generic.",
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
@@ -145,8 +144,8 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true,
 			description:
-				"`Factory` is used to register a proxy method which will return the instance of the target class. "
-				+ "The container for MSDI does not support creating a proxy for an open generic.",
+ 				"`Factory` specifies a factory method used for the service registration. "
+ 				+ "MSDI does not support registering open-generic services with a factory method.",
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 

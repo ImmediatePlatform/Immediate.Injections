@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Immediate.Injections;
 
-public static class TypedConstantExtensions
+internal static class TypedConstantExtensions
 {
 	public static TypedConstant? GetArgumentValue(this ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name)
 	{

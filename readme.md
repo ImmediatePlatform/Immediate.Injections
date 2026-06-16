@@ -44,8 +44,8 @@ Generic classes will be registered using open-generics.
 In your `Program.cs`, add a call to `services.AddXxxServices()`, where Xxx is the application identifier. By default,
 this is the short form of the assembly name. For example:
 
-* For a project named `Web`, it will be `services.AddWebHandlers()`
-* For a project named `Application.Web`, it will be `services.AddApplicationWebHandlers()`
+* For a project named `Web`, it will be `services.AddWebServices()`
+* For a project named `Application.Web`, it will be `services.AddApplicationWebServices()`
 
 However, this name can be overridden using `[assembly: ImmediateAssemblyIdentifierAttribute("SomeIdentifier")]`.
 

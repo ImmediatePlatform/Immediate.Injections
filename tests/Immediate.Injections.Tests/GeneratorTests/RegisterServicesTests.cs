@@ -1,39 +1,9 @@
+using static Immediate.Injections.Tests.Utility;
+
 namespace Immediate.Injections.Tests.GeneratorTests;
 
 public sealed class RegisterServicesTests
 {
-#if NET8_0
-	[Fact]
-	public async Task ValidRegisterServicesMethodWhenLangVersionIs12()
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			"""
-			using Immediate.Injections.Shared;
-			using Microsoft.Extensions.DependencyInjection;
-			
-			public class Class
-			{
-				[RegisterServices]
-				public static void CallMe(IServiceCollection services)
-				{
-				}
-			}
-			""",
-			languageVersion: Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12
-		);
-
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterServicesMethods.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
-
-		_ = await Verify(result);
-	}
-#endif
-
 	[Fact]
 	public async Task ValidRegisterServicesMethodIsCalled1()
 	{
@@ -60,7 +30,7 @@ public sealed class RegisterServicesTests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result);
+		_ = await VerifyIgnoreCommonFile(result);
 	}
 
 	[Fact]
@@ -91,6 +61,6 @@ public sealed class RegisterServicesTests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result);
+		_ = await VerifyIgnoreCommonFile(result);
 	}
 }

@@ -1,3 +1,5 @@
+using static Immediate.Injections.Tests.Utility;
+
 namespace Immediate.Injections.Tests.GeneratorTests;
 
 public sealed class ImmediateAssemblyIdentifierTests
@@ -35,6 +37,6 @@ public sealed class ImmediateAssemblyIdentifierTests
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
-		_ = await Verify(result);
+		_ = await VerifyIgnoreCommonFile(result);
 	}
 }

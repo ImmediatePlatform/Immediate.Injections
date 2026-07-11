@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Scriban;
@@ -138,6 +139,8 @@ public sealed partial class ImmediateInjectionsGenerator
 			.GetManifestResourceStream(
 				$"Immediate.Injections.Generators.Templates.{name}.sbntxt"
 			);
+
+		Debug.Assert(stream is { });
 
 		using var reader = new StreamReader(stream);
 		return Template.Parse(reader.ReadToEnd());

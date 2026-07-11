@@ -20,20 +20,14 @@
 	<RepositoryUrl>https://github.com/ImmediatePlatform/Immediate.Injections</RepositoryUrl>
   </PropertyGroup>
 
+
   <!--
 	This ensures the library will be packaged as a source generator when we use `dotnet pack`
 	-->
   <ItemGroup>
 	<None Include="../../readme.md" Pack="true" PackagePath="/" />
-	<None Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.8/cs" Visible="true" />
-	<None Include="../Immediate.Injections.Generators/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.8/cs" Visible="true" />
 
-	<TfmSpecificPackageFile
-	  Include="$(PkgScriban)/lib/netstandard2.0/Scriban.dll"
-	  Pack="true"
-	  PackagePath="analyzers/dotnet/roslyn4.8/cs"
-	  Condition=" '$(TargetFramework)' == 'net8.0' " />
-
+	<!-- IH.Shared -->
 	<TfmSpecificPackageFile
 	  Include="../Immediate.Injections.Shared/bin/$(Configuration)/$(TargetFramework)/Immediate.Injections.Shared.dll"
 	  Pack="true"
@@ -43,6 +37,37 @@
 	  Include="../Immediate.Injections.Shared/bin/$(Configuration)/$(TargetFramework)/Immediate.Injections.Shared.xml"
 	  Pack="true"
 	  PackagePath="lib/$(TargetFramework)" />
+  </ItemGroup>
+
+  <!-- roslyn 4.8 for net8/net9 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Analyzers.dll"
+	  Pack="true"
+	  PackagePath="analyzers/dotnet/roslyn4.8/cs" />
+
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Generators/bin/$(Configuration)/netstandard2.0/Immediate.Injections.Generators.dll"
+	  Pack="true"
+	  PackagePath="analyzers/dotnet/roslyn4.8/cs" />
+  </ItemGroup>
+
+  <!-- roslyn 5.0 for net10/net11 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Analyzers/bin/$(Configuration)/net10.0/Immediate.Injections.Analyzers.dll"
+	  Pack="true"
+	  PackagePath="analyzers/dotnet/roslyn5.0/cs" />
+
+	<TfmSpecificPackageFile
+	  Include="../Immediate.Injections.Generators/bin/$(Configuration)/net10.0/Immediate.Injections.Generators.dll"
+	  Pack="true"
+	  PackagePath="analyzers/dotnet/roslyn5.0/cs" />
+
+	<TfmSpecificPackageFile
+	  Include="$(PkgScriban)/lib/net8.0/Scriban.dll"
+	  Pack="true"
+	  PackagePath="analyzers/dotnet/roslyn5.0/cs" />
   </ItemGroup>
 
   <ItemGroup>

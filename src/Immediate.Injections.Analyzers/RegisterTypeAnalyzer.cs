@@ -166,8 +166,7 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 
 	public override void Initialize(AnalysisContext context)
 	{
-		if (context == null)
-			throw new ArgumentNullException(nameof(context));
+		ArgumentNullException.ThrowIfNull(context);
 
 		context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 		context.EnableConcurrentExecution();

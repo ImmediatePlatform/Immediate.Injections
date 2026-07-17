@@ -207,6 +207,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 						return targetSymbol
 							.AllInterfaces
+							.Where(i => !i.IsIDisposable)
 							.Select(i =>
 								BuildRegistration(
 									i,

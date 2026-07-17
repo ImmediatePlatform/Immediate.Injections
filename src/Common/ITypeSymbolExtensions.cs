@@ -46,6 +46,18 @@ internal static class ITypeSymbolExtensions
 				TypeArguments: [{ SpecialType: SpecialType.System_String }],
 			};
 
+		public bool IsIDisposable =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "IDisposable" or "IAsyncDisposable",
+				ContainingNamespace:
+				{
+					Name: "System",
+					ContainingNamespace.IsGlobalNamespace: true,
+				},
+			};
+
 		public bool IsReadOnlySpan =>
 			typeSymbol is INamedTypeSymbol
 			{

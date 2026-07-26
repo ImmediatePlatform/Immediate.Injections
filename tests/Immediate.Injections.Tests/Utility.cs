@@ -23,7 +23,7 @@ public static class Utility
 		"net11.0",
 		new PackageIdentity(
 			"Microsoft.NETCore.App.Ref",
-			"11.0.0-preview.5.26302.115"
+			"11.0.0-preview.6.26359.118"
 		),
 		Path.Combine("ref", "net11.0")
 	);
@@ -44,5 +44,6 @@ public static class Utility
 
 	public static SettingsTask VerifyIgnoreCommonFile(GeneratorDriverRunResult result, [CallerFilePath] string sourceFile = "") =>
 		Verify(result, sourceFile: sourceFile)
-			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "II.ServiceCollectionExtensions.g.cs");
+			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "II.ServiceCollectionExtensions.g.cs")
+			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "IH.ServiceCollectionExtensions.g.cs");
 }

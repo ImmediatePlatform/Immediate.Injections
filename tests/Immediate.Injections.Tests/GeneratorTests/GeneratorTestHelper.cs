@@ -92,7 +92,7 @@ public static class GeneratorTestHelper
 					TrackedOutputSteps: { } outputSteps,
 					TrackedSteps: { } trackedSteps,
 				},
-					_
+				_
 				],
 			}
 		)

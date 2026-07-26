@@ -33,6 +33,7 @@ public sealed class ImmediateAssemblyIdentifierTests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterServicesMethods.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);

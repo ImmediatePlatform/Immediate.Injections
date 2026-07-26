@@ -144,8 +144,8 @@ public sealed class RegisterTypeAnalyzer : DiagnosticAnalyzer
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true,
 			description:
- 				"`Factory` specifies a factory method used for the service registration. "
- 				+ "MSDI does not support registering open-generic services with a factory method.",
+				"`Factory` specifies a factory method used for the service registration. "
+				+ "MSDI does not support registering open-generic services with a factory method.",
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 

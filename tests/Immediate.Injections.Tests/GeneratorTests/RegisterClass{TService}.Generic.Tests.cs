@@ -26,6 +26,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -54,6 +55,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -83,6 +85,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -112,6 +115,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -141,6 +145,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -170,6 +175,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -205,6 +211,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -237,6 +244,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -269,6 +277,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -305,6 +314,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -341,6 +351,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -371,6 +382,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -401,6 +413,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -431,6 +444,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -461,6 +475,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -491,6 +506,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -523,6 +539,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -555,6 +572,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
@@ -587,6 +605,7 @@ public sealed class RegisterClass_TService_Generic_Tests
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
 				$"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.Register{lifetime}`1.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);

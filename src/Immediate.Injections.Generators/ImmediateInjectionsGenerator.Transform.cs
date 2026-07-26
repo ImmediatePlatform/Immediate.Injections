@@ -322,7 +322,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					{
 						TypeArguments:
 						[
-						INamedTypeSymbol serviceSymbol,
+							INamedTypeSymbol serviceSymbol,
 						],
 					})
 				{
@@ -405,8 +405,8 @@ public sealed partial class ImmediateInjectionsGenerator
 					{
 						TypeArguments:
 						[
-						INamedTypeSymbol serviceSymbol,
-						INamedTypeSymbol implementationSymbol
+							INamedTypeSymbol serviceSymbol,
+							INamedTypeSymbol implementationSymbol,
 						],
 					}
 					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol))

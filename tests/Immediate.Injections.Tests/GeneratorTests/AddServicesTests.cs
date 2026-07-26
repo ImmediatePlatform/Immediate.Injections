@@ -16,6 +16,7 @@ public sealed class AddServicesTests
 		Assert.Equal(
 			[
 				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
 			],
 			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);

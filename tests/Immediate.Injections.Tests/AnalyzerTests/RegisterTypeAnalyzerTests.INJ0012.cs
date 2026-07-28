@@ -21,4 +21,42 @@ public sealed partial class RegisterTypeAnalyzerTests
 			}
 			"""
 		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithInferredOpenGenericStrategyTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithAssemblyDefaultInferredOpenGenericTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
 }

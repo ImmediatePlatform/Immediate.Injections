@@ -303,6 +303,34 @@ file sealed class TypeAnalyzer(
 				valid = false;
 			}
 		}
+		else if (containerSymbol.IsGenericType)
+		{
+			if (useProxy)
+			{
+				context.ReportDiagnostic(
+					Diagnostic.Create(
+						RegisterTypeAnalyzer.CannotUseProxyFactoryForOpenGeneric,
+						location,
+						containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+					)
+				);
+
+				valid = false;
+			}
+
+			if (factory is { })
+			{
+				context.ReportDiagnostic(
+					Diagnostic.Create(
+						RegisterTypeAnalyzer.CannotUseFactoryMethodWithOpenGeneric,
+						location,
+						containerSymbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
+					)
+				);
+
+				valid = false;
+			}
+		}
 
 		switch (registrationStrategy)
 		{

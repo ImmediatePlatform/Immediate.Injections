@@ -21,4 +21,114 @@ public sealed partial class RegisterTypeAnalyzerTests
 			}
 			"""
 		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithInferredOpenGenericSelfStrategyTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(RegistrationStrategy = RegistrationStrategy.Self, Factory = nameof(Factory))|}|}]
+			public class Class<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithInferredOpenGenericImplementedInterfacesStrategyTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces, Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithInferredOpenGenericSelfAndImplementedInterfacesStrategyTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces, Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithAssemblyDefaultInferredOpenGenericTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.ImplementedInterfaces)]
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithAssemblyDefaultSelfInferredOpenGenericTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.Self)]
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(Factory = nameof(Factory))|}|}]
+			public class Class<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task FactoryMethodWithAssemblyDefaultSelfAndImplementedInterfacesInferredOpenGenericTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(
+			"""
+			using System;
+
+			using Immediate.Injections.Shared;
+
+			[assembly: RegistrationDefaults(RegistrationStrategy = RegistrationStrategy.SelfAndImplementedInterfaces)]
+
+			public interface IService<T>;
+
+			[{|INJ0012:{|INJ0002:RegisterSingleton(Factory = nameof(Factory))|}|}]
+			public class Class<T> : IService<T>
+			{
+				public static Class<T> Factory(IServiceProvider provider) => new();
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
 }

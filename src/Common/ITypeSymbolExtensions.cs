@@ -106,6 +106,22 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
 
+		public bool IsImmediateValidateAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "ValidateAttribute",
+				ContainingNamespace.IsImmediateValidationsShared: true,
+			};
+
+		public bool IsImmediateValidationTarget =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 1,
+				Name: "IValidationTarget",
+				ContainingNamespace.IsImmediateValidationsShared: true,
+			};
+
 		public bool IsRegisterTypeAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{
@@ -183,6 +199,21 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace:
 				{
 					Name: "Injections",
+					ContainingNamespace:
+					{
+						Name: "Immediate",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
+				},
+			};
+
+		public bool IsImmediateValidationsShared =>
+			namespaceSymbol is
+			{
+				Name: "Shared",
+				ContainingNamespace:
+				{
+					Name: "Validations",
 					ContainingNamespace:
 					{
 						Name: "Immediate",

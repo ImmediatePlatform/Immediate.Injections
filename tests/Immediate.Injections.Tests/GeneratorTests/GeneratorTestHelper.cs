@@ -142,6 +142,8 @@ public static class GeneratorTestHelper
 			"RegisterTransient",
 			"RegisterTransient`1",
 			"RegisterTransient`2",
+
+			"RegisterOptions",
 		};
 
 	private static void AssertSteps(

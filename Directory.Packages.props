@@ -22,6 +22,7 @@
 	<PackageVersion Include="Basic.Reference.Assemblies.Net110" Version="1.8.11" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-rc.1.26425.128" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-rc.1.26425.128" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="11.0.0-rc.1.26425.128" />
 	<PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.10.0" />
   </ItemGroup>
 
@@ -29,6 +30,7 @@
 	<PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.11" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
 	<PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.10.0" />
   </ItemGroup>
 
@@ -36,6 +38,7 @@
 	<PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.11" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.20" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.20" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.20" />
 	<PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.10.0" />
   </ItemGroup>
 
@@ -43,6 +46,7 @@
 	<PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.11" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 	<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
 	<PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.10.0" />
   </ItemGroup>
   

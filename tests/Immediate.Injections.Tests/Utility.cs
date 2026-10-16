@@ -38,6 +38,10 @@ public static class Utility
 		MetadataReference.CreateFromFile(typeof(HandlerAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Options.IOptions<>).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(OptionsBuilderConfigurationExtensions).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Configuration.BinderOptions).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Configuration.IConfiguration).Assembly.Location),
 	];
 
 	public static TheoryData<string> Lifetimes { get; } = ["Scoped", "Singleton", "Transient"];

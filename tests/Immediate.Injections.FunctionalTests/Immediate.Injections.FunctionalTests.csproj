@@ -15,6 +15,10 @@
 	<PackageReference Include="xunit.v3.mtp-v2" />
   </ItemGroup>
 
+  <ItemGroup Label="Security Dependency">
+	<PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+
   <ItemGroup>
 	<ProjectReference Include="../../src/Immediate.Injections.Shared/Immediate.Injections.Shared.csproj" />
   </ItemGroup>

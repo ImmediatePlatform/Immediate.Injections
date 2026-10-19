@@ -42,6 +42,7 @@ public static class Utility
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Options.IOptions<>).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(OptionsBuilderConfigurationExtensions).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(OptionsBuilderDataAnnotationsExtensions).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Configuration.BinderOptions).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Configuration.IConfiguration).Assembly.Location),
 	];

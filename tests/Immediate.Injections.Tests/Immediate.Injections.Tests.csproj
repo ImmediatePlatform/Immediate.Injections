@@ -14,6 +14,7 @@
 
   <ItemGroup>
 	<PackageReference Include="Immediate.Handlers" GeneratePathProperty="true" />
+	<PackageReference Include="Immediate.Validations" GeneratePathProperty="true" />
 	<PackageReference Include="Microsoft.CodeAnalysis.Common" />
 	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
 	<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
@@ -66,6 +67,7 @@
 	<Reference Include="../../src/Immediate.Injections.Generators/bin/$(Configuration)/$(RoslynVersion)/Immediate.Injections.Generators.dll" />
 
 	<Reference Include="$(PkgImmediate_Handlers)/analyzers/dotnet/$(RoslynVersion)/cs/Immediate.Handlers.Generators.dll" />
+	<Reference Include="$(PkgImmediate_Validations)/analyzers/dotnet/$(RoslynVersion)/cs/Immediate.Validations.Generators.dll" />
   </ItemGroup>
 
 </Project>

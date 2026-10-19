@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Immediate.Handlers.Shared;
 using Immediate.Injections.Shared;
+using Immediate.Validations.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ public static class Utility
 	[
 		MetadataReference.CreateFromFile(typeof(RegisterServicesAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(HandlerAttribute).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(ValidateAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Options.IOptions<>).Assembly.Location),
@@ -49,5 +51,6 @@ public static class Utility
 	public static SettingsTask VerifyIgnoreCommonFile(GeneratorDriverRunResult result, [CallerFilePath] string sourceFile = "") =>
 		Verify(result, sourceFile: sourceFile)
 			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "II.ServiceCollectionExtensions.g.cs")
-			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "IH.ServiceCollectionExtensions.g.cs");
+			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName) is "IH.ServiceCollectionExtensions.g.cs")
+			.IgnoreGeneratedResult(gsr => Path.GetFileName(gsr.HintName).StartsWith("IV.", StringComparison.Ordinal));
 }

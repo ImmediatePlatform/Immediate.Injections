@@ -457,6 +457,10 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false, IsAbstract: false } targetSymbol)
 			return null;
 
+		var compilation = context.SemanticModel.Compilation;
+		if (!compilation.HasOptionsConfigurationExtensions)
+			return null;
+
 		var useImmediateValidations =
 			targetSymbol.GetAttributes().Any(a => a.AttributeClass.IsImmediateValidateAttribute)
 			|| targetSymbol.AllInterfaces.Any(i =>
@@ -483,12 +487,16 @@ public sealed partial class ImmediateInjectionsGenerator
 		var arguments = attribute.NamedArguments;
 		var name = attribute.ConstructorArguments is [{ Value: string n }] ? n : null;
 
+		var validateDataAnnotations = arguments.GetArgumentValue("ValidateDataAnnotations")?.Value is true;
+		if (validateDataAnnotations && !compilation.HasOptionsDataAnnotations)
+			return null;
+
 		return new RegisterOptions
 		{
 			OptionsType = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
 			SectionName = SymbolDisplay.FormatLiteral(name ?? targetSymbol.GetOptionsSectionName(), quote: true),
 			BindNonPublicProperties = arguments.GetArgumentValue("BindNonPublicProperties")?.Value is true,
-			ValidateDataAnnotations = arguments.GetArgumentValue("ValidateDataAnnotations")?.Value is true,
+			ValidateDataAnnotations = validateDataAnnotations,
 			ValidateOnStart = arguments.GetArgumentValue("ValidateOnStart")?.Value is true,
 			UseImmediateValidations = useImmediateValidations,
 			Validator = validator,

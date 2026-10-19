@@ -136,7 +136,7 @@ public sealed partial class ImmediateInjectionsGenerator
 	private static void RenderRegisterOptions(
 		IncrementalGeneratorInitializationContext context,
 		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
-		IncrementalValueProvider<ImmutableArray<RegisterOptions>> options
+		IncrementalValueProvider<EquatableReadOnlyList<RegisterOptions>> options
 	)
 	{
 		context.RegisterSourceOutput(
@@ -145,7 +145,7 @@ public sealed partial class ImmediateInjectionsGenerator
 			{
 				var (options, assemblyDefaults) = x;
 
-				if (options.Length == 0)
+				if (options.Count == 0)
 					return;
 
 				var source = RegisterOptionsTemplate

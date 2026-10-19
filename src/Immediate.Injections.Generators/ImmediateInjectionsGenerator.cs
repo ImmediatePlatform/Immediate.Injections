@@ -172,7 +172,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 
 		var options = options0
 			.Combine(options1)
-			.Select((x, _) => x.Left.AddRange(x.Right))
+			.Select((x, _) => x.Left.AddRange(x.Right).ToEquatableReadOnlyList())
 			.WithTrackingName("RegisterOptions");
 
 		RenderRegisterOptions(context, assemblyDefaults, options);

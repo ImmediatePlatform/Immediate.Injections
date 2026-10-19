@@ -5,6 +5,15 @@ namespace Immediate.Injections;
 
 internal static class ITypeSymbolExtensions
 {
+	extension(Compilation compilation)
+	{
+		public bool HasOptionsConfigurationExtensions =>
+			compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions") is not null;
+
+		public bool HasOptionsDataAnnotations =>
+			compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.OptionsBuilderDataAnnotationsExtensions") is not null;
+	}
+
 	extension(IMethodSymbol methodSymbol)
 	{
 		public bool IsValidRegisterServicesMethod =>
@@ -128,6 +137,14 @@ internal static class ITypeSymbolExtensions
 				Arity: 1,
 				Name: "IValidateOptions",
 				ContainingNamespace.IsOptions: true,
+			};
+
+		public bool IsRegisterOptionsAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0 or 1,
+				Name: "RegisterOptionsAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
 
 		public bool IsRegisterTypeAttribute =>

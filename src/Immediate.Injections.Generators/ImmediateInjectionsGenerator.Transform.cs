@@ -523,9 +523,7 @@ file static class Extensions
 	{
 		var name = typeSymbol.Name;
 
-		return name.Length > "Options".Length && name.EndsWith("Options", StringComparison.Ordinal)
-			? name[..^"Options".Length]
-			: name;
+		return name.EndsWith("Options", StringComparison.Ordinal) ? name[..^"Options".Length] : name;
 	}
 
 	public static bool GetUseProxyFactoryValue(

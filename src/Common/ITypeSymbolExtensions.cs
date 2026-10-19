@@ -122,6 +122,14 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsImmediateValidationsShared: true,
 			};
 
+		public bool IsValidateOptions =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 1,
+				Name: "IValidateOptions",
+				ContainingNamespace.IsOptions: true,
+			};
+
 		public bool IsRegisterTypeAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{
@@ -181,6 +189,21 @@ internal static class ITypeSymbolExtensions
 			namespaceSymbol is
 			{
 				Name: "DependencyInjection",
+				ContainingNamespace:
+				{
+					Name: "Extensions",
+					ContainingNamespace:
+					{
+						Name: "Microsoft",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
+				},
+			};
+
+		public bool IsOptions =>
+			namespaceSymbol is
+			{
+				Name: "Options",
 				ContainingNamespace:
 				{
 					Name: "Extensions",

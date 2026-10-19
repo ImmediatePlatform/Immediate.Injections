@@ -457,7 +457,6 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false, IsAbstract: false } targetSymbol)
 			return null;
 
-		var compilation = context.SemanticModel.Compilation;
 		var useImmediateValidations =
 			targetSymbol.GetAttributes().Any(a => a.AttributeClass.IsImmediateValidateAttribute)
 			|| targetSymbol.AllInterfaces.Any(i =>
@@ -470,15 +469,13 @@ public sealed partial class ImmediateInjectionsGenerator
 		var validator = default(string);
 		if (attribute.AttributeClass is { TypeArguments: [var validatorSymbol] })
 		{
-			var validateOptions = compilation
-				.GetTypeByMetadataName("Microsoft.Extensions.Options.IValidateOptions`1")?
-				.Construct(targetSymbol);
+			var implementsValidateOptions = validatorSymbol.AllInterfaces.Any(i =>
+				i.IsValidateOptions
+				&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], targetSymbol)
+			);
 
-			if (validateOptions is null
-				|| compilation.ClassifyConversion(validatorSymbol, validateOptions) is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
-			{
+			if (!implementsValidateOptions)
 				return null;
-			}
 
 			validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
 		}

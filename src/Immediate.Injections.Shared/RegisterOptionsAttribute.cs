@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Immediate.Injections.Shared;
 
 /// <param name="name">
@@ -9,8 +7,7 @@ namespace Immediate.Injections.Shared;
 ///		</remarks>
 /// </param>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "RegisterOptionsAttribute<TValidator>")]
-public class RegisterOptionsAttribute(string? name = null) : Attribute
+public sealed class RegisterOptionsAttribute(string? name = null) : Attribute
 {
 	/// <summary>
 	///		The configuration section name.

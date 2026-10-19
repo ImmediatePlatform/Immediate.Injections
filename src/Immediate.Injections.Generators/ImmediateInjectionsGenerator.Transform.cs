@@ -450,12 +450,12 @@ public sealed partial class ImmediateInjectionsGenerator
 			.ToEquatableReadOnlyList();
 	}
 
-	private static EquatableReadOnlyList<RegisterOptions> TransformRegisterOptions(GeneratorAttributeSyntaxContext context, CancellationToken token)
+	private static RegisterOptions? TransformRegisterOptions(GeneratorAttributeSyntaxContext context, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();
 
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false, IsAbstract: false } targetSymbol)
-			return new([]);
+			return null;
 
 		var compilation = context.SemanticModel.Compilation;
 		var useImmediateValidations =
@@ -465,43 +465,37 @@ public sealed partial class ImmediateInjectionsGenerator
 				&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], targetSymbol)
 			);
 
-		return context.Attributes
-			.Select(attributeData =>
+		var attribute = context.Attributes[0];
+
+		var validator = default(string);
+		if (attribute.AttributeClass is { TypeArguments: [var validatorSymbol] })
+		{
+			var validateOptions = compilation
+				.GetTypeByMetadataName("Microsoft.Extensions.Options.IValidateOptions`1")?
+				.Construct(targetSymbol);
+
+			if (validateOptions is null
+				|| compilation.ClassifyConversion(validatorSymbol, validateOptions) is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
 			{
-				token.ThrowIfCancellationRequested();
+				return null;
+			}
 
-				var validator = default(string);
-				if (attributeData.AttributeClass is { TypeArguments: [var validatorSymbol] })
-				{
-					var validateOptions = compilation
-						.GetTypeByMetadataName("Microsoft.Extensions.Options.IValidateOptions`1")?
-						.Construct(targetSymbol);
+			validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
+		}
 
-					if (validateOptions is null
-						|| compilation.ClassifyConversion(validatorSymbol, validateOptions) is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
-					{
-						return null;
-					}
+		var arguments = attribute.NamedArguments;
+		var name = attribute.ConstructorArguments is [{ Value: string n }] ? n : null;
 
-					validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
-				}
-
-				var arguments = attributeData.NamedArguments;
-				var name = attributeData.ConstructorArguments is [{ Value: string n }] ? n : null;
-
-				return new RegisterOptions
-				{
-					OptionsType = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
-					SectionName = SymbolDisplay.FormatLiteral(name ?? targetSymbol.GetOptionsSectionName(), quote: true),
-					BindNonPublicProperties = arguments.GetArgumentValue("BindNonPublicProperties")?.Value is true,
-					ValidateDataAnnotations = arguments.GetArgumentValue("ValidateDataAnnotations")?.Value is true,
-					ValidateOnStart = arguments.GetArgumentValue("ValidateOnStart")?.Value is true,
-					UseImmediateValidations = useImmediateValidations,
-					Validator = validator,
-				};
-			})
-			.WhereNotNull()
-			.ToEquatableReadOnlyList();
+		return new RegisterOptions
+		{
+			OptionsType = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
+			SectionName = SymbolDisplay.FormatLiteral(name ?? targetSymbol.GetOptionsSectionName(), quote: true),
+			BindNonPublicProperties = arguments.GetArgumentValue("BindNonPublicProperties")?.Value is true,
+			ValidateDataAnnotations = arguments.GetArgumentValue("ValidateDataAnnotations")?.Value is true,
+			ValidateOnStart = arguments.GetArgumentValue("ValidateOnStart")?.Value is true,
+			UseImmediateValidations = useImmediateValidations,
+			Validator = validator,
+		};
 	}
 }
 

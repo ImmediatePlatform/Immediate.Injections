@@ -158,7 +158,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
 				TransformRegisterOptions
 			)
-			.SelectMany((x, _) => x)
+			.WhereNotNull()
 			.Collect();
 
 		var options1 = context.SyntaxProvider
@@ -167,7 +167,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
 				TransformRegisterOptions
 			)
-			.SelectMany((x, _) => x)
+			.WhereNotNull()
 			.Collect();
 
 		var options = options0

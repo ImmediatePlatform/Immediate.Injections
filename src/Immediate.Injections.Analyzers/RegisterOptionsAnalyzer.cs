@@ -51,7 +51,19 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 			category: "ImmediateInjections",
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true,
-			description: "Options registered with `[RegisterOptions]` must be a non-generic class, non-abstract class.",
+			description: "Options registered with `[RegisterOptions]` must be a non-generic, non-abstract class.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
+	public static readonly DiagnosticDescriptor ValidatorIsAbstract =
+		new(
+			id: DiagnosticIds.INJ0017ValidatorIsAbstract,
+			title: "The validator must not be abstract",
+			messageFormat: "Validator `{0}` is abstract and cannot be registered for `{1}`",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "The validator type of `[RegisterOptions<TValidator>]` must be a non-abstract class so that it can be constructed.",
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
@@ -61,6 +73,7 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 			OptionsDataAnnotationsIsMissing,
 			ValidatorIsInvalid,
 			OptionsTargetIsUnsupported,
+			ValidatorIsAbstract,
 		]);
 
 	public override void Initialize(AnalysisContext context)
@@ -122,20 +135,33 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 				);
 			}
 
-			if (attribute.AttributeClass is { TypeArguments: [{ TypeKind: not TypeKind.Error } validatorSymbol] }
-				&& !validatorSymbol.AllInterfaces.Any(i =>
-					i.IsValidateOptions
-					&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], context.Symbol)
-				))
+			if (attribute.AttributeClass is { TypeArguments: [{ TypeKind: not TypeKind.Error } validatorSymbol] })
 			{
-				context.ReportDiagnostic(
-					Diagnostic.Create(
-						ValidatorIsInvalid,
-						location,
-						validatorSymbol.Name,
-						context.Symbol.Name
-					)
-				);
+				if (!validatorSymbol.AllInterfaces.Any(i =>
+						i.IsValidateOptions
+						&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], context.Symbol)
+					))
+				{
+					context.ReportDiagnostic(
+						Diagnostic.Create(
+							ValidatorIsInvalid,
+							location,
+							validatorSymbol.Name,
+							context.Symbol.Name
+						)
+					);
+				}
+				else if (validatorSymbol.IsAbstract)
+				{
+					context.ReportDiagnostic(
+						Diagnostic.Create(
+							ValidatorIsAbstract,
+							location,
+							validatorSymbol.Name,
+							context.Symbol.Name
+						)
+					);
+				}
 			}
 		}
 	}

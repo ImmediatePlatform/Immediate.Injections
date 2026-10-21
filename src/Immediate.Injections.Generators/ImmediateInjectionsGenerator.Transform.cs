@@ -481,7 +481,8 @@ public sealed partial class ImmediateInjectionsGenerator
 			if (!implementsValidateOptions)
 				return null;
 
-			validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
+			if (!validatorSymbol.IsAbstract)
+				validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
 		}
 
 		var arguments = attribute.NamedArguments;

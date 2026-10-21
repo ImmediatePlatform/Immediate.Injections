@@ -200,6 +200,37 @@ public static class ManualRegistrations
 
 ***
 
+## `[RegisterOptions]`
+
+Apply this attribute to a class or record to register it as an options type bound to a configuration section, as part of `AddXxxServices`.
+
+> [!NOTE]
+> Registering options requires a package reference to `Microsoft.Extensions.Options.ConfigurationExtensions`.
+
+```cs
+[RegisterOptions]
+public sealed class PositionOptions
+{
+    public string Title { get; set; } = string.Empty;
+}
+```
+
+### Validation
+
+A validator can be registered alongside the options using the generic attribute. The validator must implement `IValidateOptions<TOptions>` for the options type.
+
+```cs
+[Validate]
+[RegisterOptions(ValidateOnStart = true)]
+public sealed partial class PositionOptions : IValidationTarget<PositionOptions>
+{
+    [NotEmpty]
+    public string Title { get; set; } = string.Empty;
+}
+```
+
+***
+
 ## Migration
 
 ### From Injectio

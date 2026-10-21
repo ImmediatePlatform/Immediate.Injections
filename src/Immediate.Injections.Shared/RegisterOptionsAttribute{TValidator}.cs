@@ -1,13 +1,12 @@
+using Microsoft.Extensions.Options;
+
 namespace Immediate.Injections.Shared;
 
 /// <typeparam name="TValidator">
 ///		An <see cref="IValidateOptions{TOptions}"/> implementation.
 /// </typeparam>
 /// <param name="name">
-///		The configuration section name.
-///		<remarks>
-///			Defaults to the class name without the options suffix.
-///		</remarks>
+///		The configuration section name. Defaults to the class name without the options suffix.
 /// </param>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class RegisterOptionsAttribute<TValidator>(string? name = null) : Attribute where TValidator : class

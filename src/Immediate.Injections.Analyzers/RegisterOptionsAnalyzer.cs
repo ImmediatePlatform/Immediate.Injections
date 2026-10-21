@@ -43,11 +43,24 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
+	public static readonly DiagnosticDescriptor OptionsTargetIsUnsupported =
+		new(
+			id: DiagnosticIds.INJ0016OptionsTargetIsUnsupported,
+			title: "Registered options must be a non-generic, non-abstract class",
+			messageFormat: "Type '{0}' has attribute `[{1}]` but is generic or abstract",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "Options registered with `[RegisterOptions]` must be a non-generic class, non-abstract class.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
 		ImmutableArray.Create([
 			OptionsConfigurationExtensionsIsMissing,
 			OptionsDataAnnotationsIsMissing,
 			ValidatorIsInvalid,
+			OptionsTargetIsUnsupported,
 		]);
 
 	public override void Initialize(AnalysisContext context)
@@ -71,6 +84,18 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 				continue;
 
 			var location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
+
+			if (context.Symbol is INamedTypeSymbol { IsGenericType: true } or INamedTypeSymbol { IsAbstract: true })
+			{
+				context.ReportDiagnostic(
+					Diagnostic.Create(
+						OptionsTargetIsUnsupported,
+						location,
+						context.Symbol.Name,
+						attribute.AttributeClass?.Name
+					)
+				);
+			}
 
 			if (!context.Compilation.HasOptionsConfigurationExtensions)
 			{

@@ -19,7 +19,10 @@ public static partial class RegistrationServiceCollectionExtensions
 			global::Microsoft.Extensions.DependencyInjection.OptionsBuilderDataAnnotationsExtensions.ValidateDataAnnotations(builder);
 			{{~ end ~}}
 			{{~ if o.use_immediate_validations ~}}
-			builder.Validate(static options => {{ o.options_type }}.Validate(options).IsValid);
+			global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(
+				services,
+				global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<global::Microsoft.Extensions.Options.IValidateOptions<{{ o.options_type }}>, ImmediateValidationsOptionsValidator<{{ o.options_type }}>>()
+			);
 			{{~ end ~}}
 			{{~ if o.validate_on_start ~}}
 			global::Microsoft.Extensions.DependencyInjection.OptionsBuilderExtensions.ValidateOnStart(builder);
@@ -35,3 +38,25 @@ public static partial class RegistrationServiceCollectionExtensions
 		{{~ end ~}}
 	}
 }
+{{~ if has_immediate_validations ~}}
+
+file sealed class ImmediateValidationsOptionsValidator<TOptions> : global::Microsoft.Extensions.Options.IValidateOptions<TOptions>
+	where TOptions : class, global::Immediate.Validations.Shared.IValidationTarget<TOptions>
+{
+	public global::Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, TOptions options)
+	{
+		if (name != global::Microsoft.Extensions.Options.Options.DefaultName)
+			return global::Microsoft.Extensions.Options.ValidateOptionsResult.Skip;
+
+		var result = TOptions.Validate(options);
+		if (result.IsValid)
+			return global::Microsoft.Extensions.Options.ValidateOptionsResult.Success;
+
+		var failures = new global::System.Collections.Generic.List<string>();
+		foreach (var error in result.Errors)
+			failures.Add(error.ErrorMessage);
+
+		return global::Microsoft.Extensions.Options.ValidateOptionsResult.Fail(failures);
+	}
+}
+{{~ end ~}}

@@ -155,6 +155,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						assemblyDefaults.RootNamespace,
 
 						Options = options,
+						HasImmediateValidations = options.Any(o => o.UseImmediateValidations),
 					});
 
 				context.CancellationToken.ThrowIfCancellationRequested();

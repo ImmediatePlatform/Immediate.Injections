@@ -8,10 +8,10 @@ internal static class ITypeSymbolExtensions
 	extension(Compilation compilation)
 	{
 		public bool HasOptionsConfigurationExtensions =>
-			compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions") is not null;
+			compilation.ReferencedAssemblyNames.Any(id => string.Equals(id.Name, "Microsoft.Extensions.Options.ConfigurationExtensions", StringComparison.Ordinal));
 
 		public bool HasOptionsDataAnnotations =>
-			compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.OptionsBuilderDataAnnotationsExtensions") is not null;
+			compilation.ReferencedAssemblyNames.Any(id => string.Equals(id.Name, "Microsoft.Extensions.Options.DataAnnotations", StringComparison.Ordinal));
 	}
 
 	extension(IMethodSymbol methodSymbol)

@@ -31,10 +31,23 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 			customTags: [WellKnownDiagnosticTags.NotConfigurable]
 		);
 
+	public static readonly DiagnosticDescriptor ValidatorIsInvalid =
+		new(
+			id: DiagnosticIds.INJ0015ValidatorIsInvalid,
+			title: "The validator must implement `IValidateOptions<TOptions>` for the options type",
+			messageFormat: "Validator `{0}` does not implement `IValidateOptions<{1}>`",
+			category: "ImmediateInjections",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true,
+			description: "The validator type of `[RegisterOptions<TValidator>]` must implement `IValidateOptions<TOptions>` where `TOptions` is the options type.",
+			customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
 		ImmutableArray.Create([
 			OptionsConfigurationExtensionsIsMissing,
 			OptionsDataAnnotationsIsMissing,
+			ValidatorIsInvalid,
 		]);
 
 	public override void Initialize(AnalysisContext context)
@@ -80,6 +93,22 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 						location,
 						context.Symbol.Name,
 						attribute.AttributeClass?.Name
+					)
+				);
+			}
+
+			if (attribute.AttributeClass is { TypeArguments: [{ TypeKind: not TypeKind.Error } validatorSymbol] }
+				&& !validatorSymbol.AllInterfaces.Any(i =>
+					i.IsValidateOptions
+					&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], context.Symbol)
+				))
+			{
+				context.ReportDiagnostic(
+					Diagnostic.Create(
+						ValidatorIsInvalid,
+						location,
+						validatorSymbol.Name,
+						context.Symbol.Name
 					)
 				);
 			}

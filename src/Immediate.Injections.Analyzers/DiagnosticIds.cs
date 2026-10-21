@@ -16,4 +16,5 @@ internal static class DiagnosticIds
 	public const string INJ0012CannotUseFactoryMethodWithOpenGeneric = "INJ0012";
 	public const string INJ0013OptionsConfigurationExtensionsIsMissing = "INJ0013";
 	public const string INJ0014OptionsDataAnnotationsIsMissing = "INJ0014";
+	public const string INJ0015ValidatorIsInvalid = "INJ0015";
 }

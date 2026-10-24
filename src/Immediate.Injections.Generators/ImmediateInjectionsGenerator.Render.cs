@@ -11,6 +11,7 @@ public sealed partial class ImmediateInjectionsGenerator
 	private static readonly Template ServiceCollectionExtensionsTemplate = GetTemplate("ServiceCollectionExtensions");
 	private static readonly Template RegisterServicesTemplate = GetTemplate("RegisterServices");
 	private static readonly Template RegisterClassesTemplate = GetTemplate("RegisterClasses");
+	private static readonly Template RegisterOptionsTemplate = GetTemplate("RegisterOptions");
 
 	private static void RenderServiceCollectionExtensions(
 		IncrementalGeneratorInitializationContext context,
@@ -128,6 +129,37 @@ public sealed partial class ImmediateInjectionsGenerator
 					FormattableString.Invariant($"II.Register{lifetime}`{arity}.g.cs"),
 					source
 				);
+			}
+		);
+	}
+
+	private static void RenderRegisterOptions(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults,
+		IncrementalValueProvider<EquatableReadOnlyList<RegisterOptions>> options
+	)
+	{
+		context.RegisterSourceOutput(
+			options.Combine(assemblyDefaults),
+			(context, x) =>
+			{
+				var (options, assemblyDefaults) = x;
+
+				if (options.Count == 0)
+					return;
+
+				var source = RegisterOptionsTemplate
+					.Render(new
+					{
+						assemblyDefaults.AssemblyName,
+						assemblyDefaults.RootNamespace,
+
+						Options = options,
+						HasImmediateValidations = options.Any(o => o.UseImmediateValidations),
+					});
+
+				context.CancellationToken.ThrowIfCancellationRequested();
+				context.AddSource("II.RegisterOptions.g.cs", source);
 			}
 		);
 	}

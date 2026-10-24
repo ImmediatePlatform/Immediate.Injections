@@ -14,3 +14,8 @@ INJ0009 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0010 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0011 | ImmediateInjections | Error | RegisterTypeAnalyzer
 INJ0012 | ImmediateInjections | Error | RegisterTypeAnalyzer
+INJ0013 | ImmediateInjections | Error | RegisterOptionsAnalyzer
+INJ0014 | ImmediateInjections | Error | RegisterOptionsAnalyzer
+INJ0015 | ImmediateInjections | Error | RegisterOptionsAnalyzer
+INJ0016 | ImmediateInjections | Error | RegisterOptionsAnalyzer
+INJ0017 | ImmediateInjections | Error | RegisterOptionsAnalyzer

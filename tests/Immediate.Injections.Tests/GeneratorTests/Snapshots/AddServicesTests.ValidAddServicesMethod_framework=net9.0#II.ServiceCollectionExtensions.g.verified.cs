@@ -23,6 +23,8 @@ public static partial class RegistrationServiceCollectionExtensions
 		services.RegisterTransient1(tags);
 		services.RegisterTransient2(tags);
 
+		services.RegisterOptions();
+
 		services.RegisterServices(tags);
 		
 		return services;
@@ -39,6 +41,8 @@ public static partial class RegistrationServiceCollectionExtensions
 	static partial void RegisterTransient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 	static partial void RegisterTransient1(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 	static partial void RegisterTransient2(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
+
+	static partial void RegisterOptions(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services);
 
 	static partial void RegisterServices(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags);
 

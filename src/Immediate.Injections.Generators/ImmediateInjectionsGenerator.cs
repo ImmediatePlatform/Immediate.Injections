@@ -20,6 +20,8 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			ProcessRegisterClass1(context, assemblyDefaults, lifetime);
 			ProcessRegisterClass2(context, assemblyDefaults, lifetime);
 		}
+
+		ProcessRegisterOptions(context, assemblyDefaults);
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
@@ -143,6 +145,37 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.WithTrackingName($"Register{lifetime}`2");
 
 		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 2);
+	}
+
+	private static void ProcessRegisterOptions(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults
+	)
+	{
+		var options0 = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				"Immediate.Injections.Shared.RegisterOptionsAttribute",
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+				TransformRegisterOptions
+			)
+			.WhereNotNull()
+			.Collect();
+
+		var options1 = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				"Immediate.Injections.Shared.RegisterOptionsAttribute`1",
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+				TransformRegisterOptions
+			)
+			.WhereNotNull()
+			.Collect();
+
+		var options = options0
+			.Combine(options1)
+			.Select((x, _) => x.Left.AddRange(x.Right).ToEquatableReadOnlyList())
+			.WithTrackingName("RegisterOptions");
+
+		RenderRegisterOptions(context, assemblyDefaults, options);
 	}
 }
 

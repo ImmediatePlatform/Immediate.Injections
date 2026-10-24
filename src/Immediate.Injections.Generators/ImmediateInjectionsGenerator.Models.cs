@@ -32,4 +32,15 @@ public sealed partial class ImmediateInjectionsGenerator
 		public required string? ServiceKey { get; init; }
 		public required string? DuplicateStrategy { get; init; }
 	}
+
+	private sealed record RegisterOptions
+	{
+		public required string OptionsType { get; init; }
+		public required string SectionName { get; init; }
+		public required bool BindNonPublicProperties { get; init; }
+		public required bool ValidateDataAnnotations { get; init; }
+		public required bool ValidateOnStart { get; init; }
+		public required bool UseImmediateValidations { get; init; }
+		public required string? Validator { get; init; }
+	}
 }

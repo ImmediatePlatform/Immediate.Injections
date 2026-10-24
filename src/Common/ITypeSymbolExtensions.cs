@@ -5,6 +5,15 @@ namespace Immediate.Injections;
 
 internal static class ITypeSymbolExtensions
 {
+	extension(Compilation compilation)
+	{
+		public bool HasOptionsConfigurationExtensions =>
+			compilation.ReferencedAssemblyNames.Any(id => string.Equals(id.Name, "Microsoft.Extensions.Options.ConfigurationExtensions", StringComparison.Ordinal));
+
+		public bool HasOptionsDataAnnotations =>
+			compilation.ReferencedAssemblyNames.Any(id => string.Equals(id.Name, "Microsoft.Extensions.Options.DataAnnotations", StringComparison.Ordinal));
+	}
+
 	extension(IMethodSymbol methodSymbol)
 	{
 		public bool IsValidRegisterServicesMethod =>
@@ -106,6 +115,38 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsImmediateInjectionsShared: true,
 			};
 
+		public bool IsImmediateValidateAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "ValidateAttribute",
+				ContainingNamespace.IsImmediateValidationsShared: true,
+			};
+
+		public bool IsImmediateValidationTarget =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 1,
+				Name: "IValidationTarget",
+				ContainingNamespace.IsImmediateValidationsShared: true,
+			};
+
+		public bool IsValidateOptions =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 1,
+				Name: "IValidateOptions",
+				ContainingNamespace.IsOptions: true,
+			};
+
+		public bool IsRegisterOptionsAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0 or 1,
+				Name: "RegisterOptionsAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
 		public bool IsRegisterTypeAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{
@@ -176,6 +217,21 @@ internal static class ITypeSymbolExtensions
 				},
 			};
 
+		public bool IsOptions =>
+			namespaceSymbol is
+			{
+				Name: "Options",
+				ContainingNamespace:
+				{
+					Name: "Extensions",
+					ContainingNamespace:
+					{
+						Name: "Microsoft",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
+				},
+			};
+
 		public bool IsImmediateInjectionsShared =>
 			namespaceSymbol is
 			{
@@ -183,6 +239,21 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace:
 				{
 					Name: "Injections",
+					ContainingNamespace:
+					{
+						Name: "Immediate",
+						ContainingNamespace.IsGlobalNamespace: true,
+					},
+				},
+			};
+
+		public bool IsImmediateValidationsShared =>
+			namespaceSymbol is
+			{
+				Name: "Shared",
+				ContainingNamespace:
+				{
+					Name: "Validations",
 					ContainingNamespace:
 					{
 						Name: "Immediate",

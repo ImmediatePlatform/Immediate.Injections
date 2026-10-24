@@ -14,4 +14,9 @@ internal static class DiagnosticIds
 	public const string INJ0010FactoryMethodIsInvalid = "INJ0010";
 	public const string INJ0011CannotUseFactoryMethodWithProxy = "INJ0011";
 	public const string INJ0012CannotUseFactoryMethodWithOpenGeneric = "INJ0012";
+	public const string INJ0013OptionsConfigurationExtensionsIsMissing = "INJ0013";
+	public const string INJ0014OptionsDataAnnotationsIsMissing = "INJ0014";
+	public const string INJ0015ValidatorIsInvalid = "INJ0015";
+	public const string INJ0016OptionsTargetIsUnsupported = "INJ0016";
+	public const string INJ0017ValidatorIsAbstract = "INJ0017";
 }

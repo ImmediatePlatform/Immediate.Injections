@@ -449,6 +449,60 @@ public sealed partial class ImmediateInjectionsGenerator
 			.WhereNotNull()
 			.ToEquatableReadOnlyList();
 	}
+
+	private static RegisterOptions? TransformRegisterOptions(GeneratorAttributeSyntaxContext context, CancellationToken token)
+	{
+		token.ThrowIfCancellationRequested();
+
+		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false, IsAbstract: false } targetSymbol)
+			return null;
+
+		var compilation = context.SemanticModel.Compilation;
+		if (!compilation.HasOptionsConfigurationExtensions)
+			return null;
+
+		var useImmediateValidations =
+			targetSymbol.GetAttributes().Any(a => a.AttributeClass.IsImmediateValidateAttribute)
+			|| targetSymbol.AllInterfaces.Any(i =>
+				i.IsImmediateValidationTarget
+				&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], targetSymbol)
+			);
+
+		var attribute = context.Attributes[0];
+
+		var validator = default(string);
+		if (attribute.AttributeClass is { TypeArguments: [var validatorSymbol] })
+		{
+			var implementsValidateOptions = validatorSymbol.AllInterfaces.Any(i =>
+				i.IsValidateOptions
+				&& SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], targetSymbol)
+			);
+
+			if (!implementsValidateOptions)
+				return null;
+
+			if (!validatorSymbol.IsAbstract)
+				validator = validatorSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat);
+		}
+
+		var arguments = attribute.NamedArguments;
+		var name = attribute.ConstructorArguments is [{ Value: string n }] ? n : null;
+
+		var validateDataAnnotations = arguments.GetArgumentValue("ValidateDataAnnotations")?.Value is true;
+		if (validateDataAnnotations && !compilation.HasOptionsDataAnnotations)
+			return null;
+
+		return new RegisterOptions
+		{
+			OptionsType = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
+			SectionName = SymbolDisplay.FormatLiteral(name ?? targetSymbol.GetOptionsSectionName(), quote: true),
+			BindNonPublicProperties = arguments.GetArgumentValue("BindNonPublicProperties")?.Value is true,
+			ValidateDataAnnotations = validateDataAnnotations,
+			ValidateOnStart = arguments.GetArgumentValue("ValidateOnStart")?.Value is true,
+			UseImmediateValidations = useImmediateValidations,
+			Validator = validator,
+		};
+	}
 }
 
 file static class Extensions
@@ -469,6 +523,13 @@ file static class Extensions
 			(false, _, { }) => $"{type}.{factory}",
 			(false, _, null) => $"typeof({type})",
 		};
+	}
+
+	public static string GetOptionsSectionName(this INamedTypeSymbol typeSymbol)
+	{
+		var name = typeSymbol.Name;
+
+		return name.EndsWith("Options", StringComparison.Ordinal) ? name[..^"Options".Length] : name;
 	}
 
 	public static bool GetUseProxyFactoryValue(

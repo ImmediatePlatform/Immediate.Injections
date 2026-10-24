@@ -65,6 +65,63 @@ public sealed class RegisterOptionsAnalyzerTests
 			"Microsoft.Extensions.Options.DataAnnotations"
 		).RunAsync(TestContext.Current.CancellationToken);
 
+	[Fact]
+	public async Task ValidatorForOtherOptionsTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterOptionsAnalyzer>(
+			"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.Options;
+
+			[{|INJ0015:RegisterOptions<OtherOptionsValidator>|}]
+			public sealed class PositionOptions
+			{
+				public string Title { get; set; } = string.Empty;
+			}
+
+			public sealed class OtherOptions;
+
+			public sealed class OtherOptionsValidator : IValidateOptions<OtherOptions>
+			{
+				public ValidateOptionsResult Validate(string? name, OtherOptions options) =>
+					ValidateOptionsResult.Success;
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task AbstractOptionsTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterOptionsAnalyzer>(
+			"""
+			using Immediate.Injections.Shared;
+
+			[{|INJ0016:RegisterOptions|}]
+			public abstract class PositionOptions
+			{
+				public string Title { get; set; } = string.Empty;
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task AbstractValidatorTriggers() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterOptionsAnalyzer>(
+			"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.Options;
+
+			[{|INJ0017:RegisterOptions<PositionOptionsValidator>|}]
+			public sealed class PositionOptions
+			{
+				public string Title { get; set; } = string.Empty;
+			}
+
+			public abstract class PositionOptionsValidator : IValidateOptions<PositionOptions>
+			{
+				public abstract ValidateOptionsResult Validate(string? name, PositionOptions options);
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
 	private static CSharpAnalyzerTest<RegisterOptionsAnalyzer, DefaultVerifier> CreateAnalyzerTest(
 		string inputSource,
 		string removedAssembly

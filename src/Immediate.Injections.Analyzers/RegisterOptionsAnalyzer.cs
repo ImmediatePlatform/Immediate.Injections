@@ -151,7 +151,8 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 						)
 					);
 				}
-				else if (validatorSymbol.IsAbstract)
+
+				if (validatorSymbol.IsAbstract)
 				{
 					context.ReportDiagnostic(
 						Diagnostic.Create(

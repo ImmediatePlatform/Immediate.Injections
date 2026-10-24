@@ -11,7 +11,10 @@ public static partial class RegistrationServiceCollectionExtensions
 		{
 			var builder = global::Microsoft.Extensions.DependencyInjection.OptionsServiceCollectionExtensions.AddOptions<global::Some.Namespace.PositionOptions>(services);
 			global::Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions.BindConfiguration(builder, "Position");
-			builder.Validate(static options => global::Some.Namespace.PositionOptions.Validate(options).IsValid);
+			global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(
+				services,
+				global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<global::Microsoft.Extensions.Options.IValidateOptions<global::Some.Namespace.PositionOptions>, ImmediateValidationsOptionsValidator<global::Some.Namespace.PositionOptions>>()
+			);
 		}
 
 		{
@@ -19,5 +22,25 @@ public static partial class RegistrationServiceCollectionExtensions
 			global::Microsoft.Extensions.DependencyInjection.OptionsBuilderConfigurationExtensions.BindConfiguration(builder, "Other");
 		}
 
+	}
+}
+
+file sealed class ImmediateValidationsOptionsValidator<TOptions> : global::Microsoft.Extensions.Options.IValidateOptions<TOptions>
+	where TOptions : class, global::Immediate.Validations.Shared.IValidationTarget<TOptions>
+{
+	public global::Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, TOptions options)
+	{
+		if (name != global::Microsoft.Extensions.Options.Options.DefaultName)
+			return global::Microsoft.Extensions.Options.ValidateOptionsResult.Skip;
+
+		var result = TOptions.Validate(options);
+		if (result.IsValid)
+			return global::Microsoft.Extensions.Options.ValidateOptionsResult.Success;
+
+		var failures = new global::System.Collections.Generic.List<string>();
+		foreach (var error in result.Errors)
+			failures.Add(error.ErrorMessage);
+
+		return global::Microsoft.Extensions.Options.ValidateOptionsResult.Fail(failures);
 	}
 }

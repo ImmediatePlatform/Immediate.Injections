@@ -185,8 +185,24 @@ internal static class ITypeSymbolExtensions
 		public bool IsValidHostedService =>
 			typeSymbol is { IsAbstract: false, IsGenericType: false }
 			&& typeSymbol.AllInterfaces.Any(i =>
-				i is { Name: "IHostedService", Arity: 0 }
-				&& string.Equals(i.ContainingNamespace.ToDisplayString(), "Microsoft.Extensions.Hosting", StringComparison.Ordinal));
+				i is
+				{
+					Name: "IHostedService",
+					Arity: 0,
+					ContainingNamespace:
+					{
+						Name: "Hosting",
+						ContainingNamespace:
+						{
+							Name: "Extensions",
+							ContainingNamespace:
+							{
+								Name: "Microsoft",
+								ContainingNamespace.IsGlobalNamespace: true,
+							},
+						},
+					},
+				});
 
 		public bool IsValidFactoryMethod(string? factory, bool isKeyed)
 		{

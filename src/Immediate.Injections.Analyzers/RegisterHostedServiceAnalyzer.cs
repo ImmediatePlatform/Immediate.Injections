@@ -26,19 +26,24 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 
 		context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 		context.EnableConcurrentExecution();
-		context.RegisterSymbolAction(context =>
-		{
-			var type = (INamedTypeSymbol)context.Symbol;
-			foreach (var attribute in type.GetAttributes())
-			{
-				if (attribute.AttributeClass is not
-					{ Name: "RegisterHostedServiceAttribute", ContainingNamespace.IsImmediateInjectionsShared: true }
-					|| type.IsValidHostedService)
-					continue;
+		context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+	}
 
-				var location = attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken).GetLocation();
-				context.ReportDiagnostic(Diagnostic.Create(InvalidHostedService, location, type.Name));
-			}
-		}, SymbolKind.NamedType);
+	private static void AnalyzeSymbol(SymbolAnalysisContext context)
+	{
+		var token = context.CancellationToken;
+		token.ThrowIfCancellationRequested();
+
+		var type = (INamedTypeSymbol)context.Symbol;
+		foreach (var attribute in type.GetAttributes())
+		{
+			if (attribute.AttributeClass is not
+				{ Name: "RegisterHostedServiceAttribute", ContainingNamespace.IsImmediateInjectionsShared: true }
+				|| type.IsValidHostedService)
+				continue;
+
+			var location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
+			context.ReportDiagnostic(Diagnostic.Create(InvalidHostedService, location, type.Name));
+		}
 	}
 }

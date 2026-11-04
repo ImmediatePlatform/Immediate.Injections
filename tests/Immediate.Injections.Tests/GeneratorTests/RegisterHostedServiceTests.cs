@@ -15,7 +15,14 @@ public sealed class RegisterHostedServiceTests
 			public sealed class NotHosted;
 			"""
 		);
-		Assert.DoesNotContain(result.GeneratedTrees, tree => tree.FilePath.EndsWith("II.RegisterHostedServices.g.cs", StringComparison.Ordinal));
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
 	}
 
 	[Fact]
@@ -35,6 +42,15 @@ public sealed class RegisterHostedServiceTests
 				public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 			}
 			"""
+		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterHostedServices.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 
 		_ = await VerifyIgnoreCommonFile(result);

@@ -22,6 +22,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		}
 
 		ProcessRegisterOptions(context, assemblyDefaults);
+		ProcessRegisterHostedServices(context, assemblyDefaults);
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)

@@ -19,3 +19,4 @@ INJ0014 | ImmediateInjections | Error | RegisterOptionsAnalyzer
 INJ0015 | ImmediateInjections | Error | RegisterOptionsAnalyzer
 INJ0016 | ImmediateInjections | Error | RegisterOptionsAnalyzer
 INJ0017 | ImmediateInjections | Error | RegisterOptionsAnalyzer
+INJ0018 | ImmediateInjections | Error | RegisterHostedServiceAnalyzer

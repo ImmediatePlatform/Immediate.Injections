@@ -450,6 +450,23 @@ public sealed partial class ImmediateInjectionsGenerator
 			.ToEquatableReadOnlyList();
 	}
 
+	private static RegisterHostedService? TransformRegisterHostedService(
+		GeneratorAttributeSyntaxContext context,
+		CancellationToken token
+	)
+	{
+		token.ThrowIfCancellationRequested();
+
+		if (context.TargetSymbol is not INamedTypeSymbol { IsValidHostedService: true } targetSymbol)
+			return null;
+
+		return new RegisterHostedService
+		{
+			Implementation = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
+			Tags = context.Attributes[0].NamedArguments.GetArgumentValue("Tags")?.GetStringArray(),
+		};
+	}
+
 	private static RegisterOptions? TransformRegisterOptions(GeneratorAttributeSyntaxContext context, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();

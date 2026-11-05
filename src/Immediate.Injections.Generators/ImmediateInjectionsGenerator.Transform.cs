@@ -85,13 +85,15 @@ public sealed partial class ImmediateInjectionsGenerator
 						if (useProxy && factory is { })
 							return [];
 
+						if (!RegistrationAccessibility.IsTypeAccessable(serviceType))
+							return [];
+
 						if (!targetSymbol.IsGenericType)
 						{
 							if (
 								context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceType) is not (
 								{ IsIdentity: true } or { IsImplicit: true, IsReference: true }
 								)
-								|| !RegistrationAccessibility.IsTypeAccessable(serviceType)
 							)
 							{
 								return [];
@@ -333,6 +335,8 @@ public sealed partial class ImmediateInjectionsGenerator
 			{
 				token.ThrowIfCancellationRequested();
 
+				var implementationSymbol = targetSymbol;
+
 				var arguments = attributeData.NamedArguments;
 
 				if (
@@ -349,21 +353,21 @@ public sealed partial class ImmediateInjectionsGenerator
 					return null;
 				}
 
-				if (targetSymbol.IsGenericType)
+				if (implementationSymbol.IsGenericType)
 				{
 					if (!serviceSymbol.IsGenericType)
 						return null;
 
-					if (targetSymbol.Arity != serviceSymbol.Arity)
+					if (implementationSymbol.Arity != serviceSymbol.Arity)
 						return null;
 
-					targetSymbol = targetSymbol.Construct(
+					implementationSymbol = implementationSymbol.Construct(
 						serviceSymbol.TypeArguments,
 						serviceSymbol.TypeArgumentNullableAnnotations
 					);
 				}
 
-				var conversion = context.SemanticModel.Compilation.ClassifyConversion(targetSymbol, serviceSymbol);
+				var conversion = context.SemanticModel.Compilation.ClassifyConversion(implementationSymbol, serviceSymbol);
 				if (conversion is not ({ IsIdentity: true } or { IsImplicit: true, IsReference: true }))
 					return null;
 
@@ -383,13 +387,13 @@ public sealed partial class ImmediateInjectionsGenerator
 						return null;
 				}
 
-				if (!targetSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
+				if (!implementationSymbol.IsValidFactoryMethod(factory, isKeyed: serviceKey is { }))
 					return null;
 
 				return new RegisterClass
 				{
 					ServiceType = serviceSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
-					Implementation = targetSymbol.BuildImplementationArgument(
+					Implementation = implementationSymbol.BuildImplementationArgument(
 						useProxyValue.GetUseProxyFactoryValue(factory, defaultUseProxyFactory),
 						isKeyed: serviceKey is { },
 						factory: factory
@@ -434,7 +438,8 @@ public sealed partial class ImmediateInjectionsGenerator
 						],
 					}
 					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol)
-					|| !RegistrationAccessibility.IsTypeAccessable(implementationSymbol.OriginalDefinition)
+					|| !RegistrationAccessibility.IsTypeAccessable(serviceSymbol)
+					|| !RegistrationAccessibility.IsTypeAccessable(implementationSymbol)
 				)
 				{
 					return null;

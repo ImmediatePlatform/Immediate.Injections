@@ -12,7 +12,7 @@ public sealed class RegisterServicesMethodAnalyzer : DiagnosticAnalyzer
 		new(
 			id: DiagnosticIds.INJ0001RegisterServicesMethodIsInvalid,
 			title: "RegisterServices method is invalid",
-			messageFormat: "Method '{0}' must be a static void method receiving an `IServiceCollection` parameter and optionally a `ReadOnlySpan<string>` parameter which can is accessible",
+			messageFormat: "Method '{0}' must be an accessible static void method receiving an `IServiceCollection` parameter and optionally a `ReadOnlySpan<string>` parameter",
 			category: "ImmediateInjections",
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true,

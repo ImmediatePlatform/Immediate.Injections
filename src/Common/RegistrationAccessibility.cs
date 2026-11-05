@@ -32,6 +32,10 @@ internal static class RegistrationAccessibility
 			return false;
 		}
 
+		// An unbound generic names only the definition, not its placeholder arguments.
+		if (namedTypeSymbol.IsUnboundGenericType)
+			return true;
+
 		foreach (var argument in namedTypeSymbol.TypeArguments)
 		{
 			if (!IsTypeAccessable(argument))

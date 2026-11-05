@@ -19,11 +19,14 @@ internal static class ITypeSymbolExtensions
 		public bool IsValidRegisterServicesMethod =>
 			methodSymbol is
 			{
+				DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal,
 				IsStatic: true,
 				IsAsync: false,
 				ReturnsVoid: true,
 				Parameters: [{ Type.IsIServiceCollection: true }] or [{ Type.IsIServiceCollection: true }, { Type.IsReadOnlySpanString: true }],
-			};
+				ContainingType: { } container,
+			}
+			&& RegistrationAccessibility.IsTypeAccessable(container);
 	}
 
 	extension([NotNullWhen(true)] ITypeSymbol? typeSymbol)
@@ -210,7 +213,8 @@ internal static class ITypeSymbolExtensions
 							},
 						},
 					},
-				});
+				})
+			&& RegistrationAccessibility.IsTypeAccessable(typeSymbol);
 
 		public bool IsValidFactoryMethod(string? factory, bool isKeyed)
 		{

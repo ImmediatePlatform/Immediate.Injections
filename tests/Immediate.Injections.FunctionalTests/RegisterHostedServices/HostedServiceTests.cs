@@ -2,7 +2,7 @@ using Immediate.Injections.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Immediate.Injections.FunctionalTests;
+namespace Immediate.Injections.FunctionalTests.RegisterHostedServices;
 
 [RegisterHostedService(Tags = ["hosted"])]
 public sealed class Worker : IHostedService
@@ -22,14 +22,19 @@ public sealed class HostedServiceTests
 	[Fact]
 	public async Task HostedServices_AreSingletonsAndCanStartAndStop()
 	{
-		using var provider = ServiceProviderFactory.Create(tags: "hosted");
+		await using var provider = ServiceProviderFactory.Create(tags: "hosted");
+
 		var first = provider.GetServices<IHostedService>().ToArray();
 		var second = provider.GetServices<IHostedService>().ToArray();
-		Assert.Equal(2, first.Length);
-		Assert.Contains(first, service => service is Worker);
-		Assert.Contains(first, service => service is OtherWorker);
-		Assert.Same(first[0], second[0]);
-		Assert.Same(first[1], second[1]);
+
+		Assert.Collection(
+			first,
+			service => Assert.IsType<Worker>(service),
+			service => Assert.IsType<OtherWorker>(service)
+		);
+
+		Assert.Equal(first, second);
+
 		foreach (var service in first)
 		{
 			await service.StartAsync(TestContext.Current.CancellationToken);

@@ -26,7 +26,7 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true,
 		description: "Explicit RegisterHostedService orders must be unique across the assembly, regardless of tags.",
-		customTags: [WellKnownDiagnosticTags.NotConfigurable]
+		customTags: [WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.CompilationEnd]
 	);
 
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
@@ -52,7 +52,9 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		{
 			if (!attribute.AttributeClass.IsRegisterHostedServiceAttribute
 				|| type.IsValidHostedService)
+			{
 				continue;
+			}
 
 			var location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
 			context.ReportDiagnostic(Diagnostic.Create(InvalidHostedService, location, type.Name));
@@ -74,7 +76,8 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		foreach (var group in registrations)
 		{
 			context.CancellationToken.ThrowIfCancellationRequested();
-			if (group.Count() < 2)
+
+			if (!group.Skip(1).Any())
 				continue;
 
 			foreach (var registration in group)

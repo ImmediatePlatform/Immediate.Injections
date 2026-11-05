@@ -2,7 +2,7 @@ using Immediate.Injections.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Immediate.Injections.FunctionalTests;
+namespace Immediate.Injections.FunctionalTests.RegisterHostedServices;
 
 public abstract class OrderedWorkerBase : BackgroundService
 {

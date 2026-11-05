@@ -11,6 +11,16 @@ namespace Immediate.Injections.Shared;
 public sealed class RegisterHostedServiceAttribute : Attribute
 {
 	/// <summary>
+	/// The optional registration order, applied after services without an explicit order.
+	/// </summary>
+	/// <remarks>
+	/// If an order is not provided, it is assumed that it does not matter whether this service
+	/// is initialized before or after any other hosted service. Explicit orders must be unique
+	/// within the assembly and are applied in ascending order.
+	/// </remarks>
+	public int Order { get; init; }
+
+	/// <summary>
 	/// An optional list of tags used to filter the generated registration at runtime.
 	/// </summary>
 	public string[]? Tags { get; init; }

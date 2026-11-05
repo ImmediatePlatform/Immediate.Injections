@@ -139,6 +139,14 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsOptions: true,
 			};
 
+		public bool IsRegisterHostedServiceAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "RegisterHostedServiceAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
 		public bool IsRegisterOptionsAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{

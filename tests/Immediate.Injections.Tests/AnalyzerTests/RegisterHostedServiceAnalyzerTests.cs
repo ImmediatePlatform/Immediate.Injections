@@ -35,4 +35,64 @@ public sealed class RegisterHostedServiceAnalyzerTests
 			{{declaration}};
 			"""
 		).RunAsync(TestContext.Current.CancellationToken);
+	[Theory]
+	[InlineData(0)]
+	[InlineData(-10)]
+	[InlineData(int.MaxValue)]
+	public async Task DuplicateOrdersAcrossNamespacesAndTags_ReportDiagnostics(int order) =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterHostedServiceAnalyzer>(
+			$$"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.Hosting;
+			using System.Threading;
+			using System.Threading.Tasks;
+
+			namespace First
+			{
+				[{|INJ0019:RegisterHostedService(Order = {{order}}, Tags = ["first"])|}]
+				public sealed class Worker : BackgroundService
+				{
+					protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+				}
+			}
+			namespace Second
+			{
+				public static class Container
+				{
+					[{|INJ0019:RegisterHostedService(Order = {{order}}, Tags = ["second"])|}]
+					public sealed class Worker : BackgroundService
+					{
+						protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+					}
+				}
+			}
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
+	[Fact]
+	public async Task UnspecifiedOrdersAndDistinctExplicitOrders_DoNotReportDiagnostics() =>
+		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterHostedServiceAnalyzer>(
+			"""
+			using Immediate.Injections.Shared;
+			using Microsoft.Extensions.Hosting;
+			using System.Threading;
+			using System.Threading.Tasks;
+
+			public abstract class WorkerBase : BackgroundService
+			{
+				protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+			}
+			[RegisterHostedService]
+			public sealed class First : WorkerBase;
+			[RegisterHostedService]
+			public sealed class Second : WorkerBase;
+			[RegisterHostedService(Order = 0)]
+			public sealed class Third : WorkerBase;
+			[RegisterHostedService(Order = -1)]
+			public sealed class Fourth : WorkerBase;
+			[RegisterHostedService(Order = int.MaxValue)]
+			public sealed class Fifth : WorkerBase;
+			"""
+		).RunAsync(TestContext.Current.CancellationToken);
+
 }

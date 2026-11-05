@@ -462,6 +462,7 @@ public sealed partial class ImmediateInjectionsGenerator
 
 		return new RegisterHostedService
 		{
+			Order = context.Attributes[0].NamedArguments.GetArgumentValue("Order")?.Value as int?,
 			Implementation = targetSymbol.ToDisplayString(DisplayNameFormatters.FullyQualifiedWithNullableFormat),
 			Tags = context.Attributes[0].NamedArguments.GetArgumentValue("Tags")?.GetStringArray(),
 		};

@@ -153,7 +153,7 @@ public sealed partial class ImmediateInjectionsGenerator
 					.Render(new
 					{
 						assemblyDefaults.RootNamespace,
-						ServicesByTag = services.GroupBy(s => s.Tags, StringComparer.Ordinal),
+						Services = services.OrderBy(s => s.Order.HasValue).ThenBy(s => s.Order),
 					});
 
 				context.CancellationToken.ThrowIfCancellationRequested();

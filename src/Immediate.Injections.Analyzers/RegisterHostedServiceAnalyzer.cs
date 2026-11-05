@@ -8,7 +8,7 @@ namespace Immediate.Injections.Analyzers;
 public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 {
 	public static readonly DiagnosticDescriptor InvalidHostedService = new(
-		id: "INJ0018",
+		id: DiagnosticIds.INJ0018InvalidHostedService,
 		title: "Hosted services must be concrete non-generic implementations of IHostedService",
 		messageFormat: "Type '{0}' must be a concrete non-generic implementation of IHostedService",
 		category: "ImmediateInjections",
@@ -18,7 +18,19 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		customTags: [WellKnownDiagnosticTags.NotConfigurable]
 	);
 
-	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create([InvalidHostedService]);
+	public static readonly DiagnosticDescriptor DuplicateHostedServiceOrder = new(
+		id: DiagnosticIds.INJ0019DuplicateHostedServiceOrder,
+		title: "Hosted service orders must be unique within an assembly",
+		messageFormat: "Hosted service order '{0}' is used by more than one registration in this assembly",
+		category: "ImmediateInjections",
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true,
+		description: "Explicit RegisterHostedService orders must be unique across the assembly, regardless of tags.",
+		customTags: [WellKnownDiagnosticTags.NotConfigurable]
+	);
+
+	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+		ImmutableArray.Create([InvalidHostedService, DuplicateHostedServiceOrder]);
 
 	public override void Initialize(AnalysisContext context)
 	{
@@ -27,6 +39,7 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 		context.EnableConcurrentExecution();
 		context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+		context.RegisterCompilationAction(AnalyzeCompilation);
 	}
 
 	private static void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -37,8 +50,7 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 		var type = (INamedTypeSymbol)context.Symbol;
 		foreach (var attribute in type.GetAttributes())
 		{
-			if (attribute.AttributeClass is not
-				{ Name: "RegisterHostedServiceAttribute", ContainingNamespace.IsImmediateInjectionsShared: true }
+			if (!attribute.AttributeClass.IsRegisterHostedServiceAttribute
 				|| type.IsValidHostedService)
 				continue;
 
@@ -46,4 +58,47 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 			context.ReportDiagnostic(Diagnostic.Create(InvalidHostedService, location, type.Name));
 		}
 	}
+	private static void AnalyzeCompilation(CompilationAnalysisContext context)
+	{
+		var registrations = GetTypes(context.Compilation.Assembly.GlobalNamespace, context.CancellationToken)
+			.SelectMany(type => type.GetAttributes())
+			.Where(attribute => attribute.AttributeClass.IsRegisterHostedServiceAttribute)
+			.Select(attribute => new
+			{
+				Attribute = attribute,
+				Order = attribute.NamedArguments.GetArgumentValue("Order")?.Value as int?,
+			})
+			.Where(registration => registration.Order.HasValue)
+			.GroupBy(registration => registration.Order);
+
+		foreach (var group in registrations)
+		{
+			context.CancellationToken.ThrowIfCancellationRequested();
+			if (group.Count() < 2)
+				continue;
+
+			foreach (var registration in group)
+			{
+				var location = registration.Attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken).GetLocation();
+				context.ReportDiagnostic(Diagnostic.Create(DuplicateHostedServiceOrder, location, group.Key));
+			}
+		}
+	}
+
+	private static IEnumerable<INamedTypeSymbol> GetTypes(INamespaceOrTypeSymbol container, CancellationToken token)
+	{
+		foreach (var member in container.GetMembers())
+		{
+			token.ThrowIfCancellationRequested();
+			if (member is INamedTypeSymbol type)
+				yield return type;
+
+			if (member is INamespaceOrTypeSymbol nested)
+			{
+				foreach (var nestedType in GetTypes(nested, token))
+					yield return nestedType;
+			}
+		}
+	}
+
 }

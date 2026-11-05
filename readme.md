@@ -218,6 +218,11 @@ Like `AddHostedService<T>()`, this registers `IHostedService` and ignores repeat
 of the same implementation. `Tags` filters registrations using the usual `AddXxxServices` tags.
 The concrete class is not registered separately.
 
+Set `Order` to control registration order, for example `[RegisterHostedService(Order = 10)]`.
+Services without an explicit order are registered first, followed by ordered services in ascending order.
+Omitting the order means that initialization before or after any other hosted service is assumed not to matter.
+Explicit orders must be unique across the assembly, including services with different tags (`INJ0019`).
+
 ***
 
 ## `[RegisterOptions]`

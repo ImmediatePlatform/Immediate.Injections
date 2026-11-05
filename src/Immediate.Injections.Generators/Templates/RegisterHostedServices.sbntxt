@@ -11,18 +11,16 @@ public static partial class RegistrationServiceCollectionExtensions
 {
 	static partial void RegisterHostedServices(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::System.ReadOnlySpan<string> tags)
 	{
-		{{~ for g in services_by_tag ~}}
-		{{~ if g.key != null ~}}
-		if (tags is [] || Intersects(tags, [{{ g.key }}]))
+		{{~ for s in services ~}}
+		{{~ if s.tags != null ~}}
+		if (tags is [] || Intersects(tags, [{{ s.tags }}]))
 		{
 		{{~ end ~}}
-		{{~ for s in g ~}}
 		global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddEnumerable(
 			services,
 			global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<global::Microsoft.Extensions.Hosting.IHostedService, {{ s.implementation }}>()
 		);
-		{{~ end ~}}
-		{{~ if g.key != null ~}}
+		{{~ if s.tags != null ~}}
 		}
 		{{~ end ~}}
 		{{~ end ~}}

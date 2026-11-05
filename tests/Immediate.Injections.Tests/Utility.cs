@@ -40,6 +40,7 @@ public static class Utility
 		MetadataReference.CreateFromFile(typeof(ValidateAttribute).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(ServiceCollection).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Hosting.IHostedService).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Options.IOptions<>).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(OptionsBuilderConfigurationExtensions).Assembly.Location),
 		MetadataReference.CreateFromFile(typeof(OptionsBuilderDataAnnotationsExtensions).Assembly.Location),

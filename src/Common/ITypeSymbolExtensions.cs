@@ -139,6 +139,14 @@ internal static class ITypeSymbolExtensions
 				ContainingNamespace.IsOptions: true,
 			};
 
+		public bool IsRegisterHostedServiceAttribute =>
+			typeSymbol is INamedTypeSymbol
+			{
+				Arity: 0,
+				Name: "RegisterHostedServiceAttribute",
+				ContainingNamespace.IsImmediateInjectionsShared: true,
+			};
+
 		public bool IsRegisterOptionsAttribute =>
 			typeSymbol is INamedTypeSymbol
 			{
@@ -182,6 +190,28 @@ internal static class ITypeSymbolExtensions
 
 	extension(INamedTypeSymbol typeSymbol)
 	{
+		public bool IsValidHostedService =>
+			typeSymbol is { IsAbstract: false, IsGenericType: false }
+			&& typeSymbol.AllInterfaces.Any(i =>
+				i is
+				{
+					Name: "IHostedService",
+					Arity: 0,
+					ContainingNamespace:
+					{
+						Name: "Hosting",
+						ContainingNamespace:
+						{
+							Name: "Extensions",
+							ContainingNamespace:
+							{
+								Name: "Microsoft",
+								ContainingNamespace.IsGlobalNamespace: true,
+							},
+						},
+					},
+				});
+
 		public bool IsValidFactoryMethod(string? factory, bool isKeyed)
 		{
 			if (factory is null)

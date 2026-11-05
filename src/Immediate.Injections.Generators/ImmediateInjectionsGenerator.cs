@@ -22,6 +22,7 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 		}
 
 		ProcessRegisterOptions(context, assemblyDefaults);
+		ProcessRegisterHostedServices(context, assemblyDefaults);
 	}
 
 	private static IncrementalValueProvider<AssemblyDefaults> GetAssemblyDefaults(IncrementalGeneratorInitializationContext context)
@@ -145,6 +146,24 @@ public sealed partial class ImmediateInjectionsGenerator : IIncrementalGenerator
 			.WithTrackingName($"Register{lifetime}`2");
 
 		RenderRegisterClasses(context, assemblyDefaults, classes, lifetime, 2);
+	}
+
+	private static void ProcessRegisterHostedServices(
+		IncrementalGeneratorInitializationContext context,
+		IncrementalValueProvider<AssemblyDefaults> assemblyDefaults
+	)
+	{
+		var services = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				"Immediate.Injections.Shared.RegisterHostedServiceAttribute",
+				(node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+				TransformRegisterHostedService
+			)
+			.WhereNotNull()
+			.Collect()
+			.WithTrackingName("RegisterHostedServices");
+
+		RenderRegisterHostedServices(context, assemblyDefaults, services);
 	}
 
 	private static void ProcessRegisterOptions(

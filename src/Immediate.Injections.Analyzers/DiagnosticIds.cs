@@ -19,4 +19,6 @@ internal static class DiagnosticIds
 	public const string INJ0015ValidatorIsInvalid = "INJ0015";
 	public const string INJ0016OptionsTargetIsUnsupported = "INJ0016";
 	public const string INJ0017ValidatorIsAbstract = "INJ0017";
+	public const string INJ0018InvalidHostedService = "INJ0018";
+	public const string INJ0019DuplicateHostedServiceOrder = "INJ0019";
 }

@@ -200,6 +200,31 @@ public static class ManualRegistrations
 
 ***
 
+## `[RegisterHostedService]`
+
+Apply `[RegisterHostedService]` to a concrete, non-generic class implementing `IHostedService`
+(or deriving from `BackgroundService`) to include it in `AddXxxServices` as a singleton hosted service.
+Reference `Microsoft.Extensions.Hosting.Abstractions` in the consuming project.
+
+```cs
+[RegisterHostedService(Tags = ["background"])]
+public sealed class Worker : BackgroundService
+{
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+}
+```
+
+Like `AddHostedService<T>()`, this registers `IHostedService` and ignores repeated registrations
+of the same implementation. `Tags` filters registrations using the usual `AddXxxServices` tags.
+The concrete class is not registered separately.
+
+Set `Order` to control registration order, for example `[RegisterHostedService(Order = 10)]`.
+Services without an explicit order are registered first, followed by ordered services in ascending order.
+Omitting the order means that initialization before or after any other hosted service is assumed not to matter.
+Explicit orders must be unique across the assembly, including services with different tags (`INJ0019`).
+
+***
+
 ## `[RegisterOptions]`
 
 Apply this attribute to a class or record to register it as an options type bound to a configuration section, as part of `AddXxxServices`.

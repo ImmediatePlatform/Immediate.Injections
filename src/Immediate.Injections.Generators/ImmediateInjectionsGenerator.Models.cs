@@ -33,6 +33,13 @@ public sealed partial class ImmediateInjectionsGenerator
 		public required string? DuplicateStrategy { get; init; }
 	}
 
+	private sealed record RegisterHostedService
+	{
+		public required int? Order { get; init; }
+		public required string Implementation { get; init; }
+		public required string? Tags { get; init; }
+	}
+
 	private sealed record RegisterOptions
 	{
 		public required string OptionsType { get; init; }

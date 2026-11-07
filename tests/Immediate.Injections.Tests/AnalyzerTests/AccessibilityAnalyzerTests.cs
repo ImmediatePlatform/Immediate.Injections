@@ -12,7 +12,7 @@ public sealed class AccessibilityAnalyzerTests
 
 	[Theory]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedLifetimes), MemberType = typeof(AccessibilityTestCases))]
-	public async Task AccessibleLifetimes_AreAccepted(string source, string[] _) =>
+	public async Task AccessibleLifetimes_AreAccepted(string source) =>
 		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterTypeAnalyzer>(source)
 			.RunAsync(TestContext.Current.CancellationToken);
 
@@ -24,7 +24,7 @@ public sealed class AccessibilityAnalyzerTests
 
 	[Theory]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedOptions), MemberType = typeof(AccessibilityTestCases))]
-	public async Task AccessibleOptions_AreAccepted(string source, string[] _) =>
+	public async Task AccessibleOptions_AreAccepted(string source) =>
 		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterOptionsAnalyzer>(source)
 			.RunAsync(TestContext.Current.CancellationToken);
 
@@ -36,7 +36,7 @@ public sealed class AccessibilityAnalyzerTests
 
 	[Theory]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedHostedServices), MemberType = typeof(AccessibilityTestCases))]
-	public async Task AccessibleHostedServices_AreAccepted(string source, string[] _) =>
+	public async Task AccessibleHostedServices_AreAccepted(string source) =>
 		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterHostedServiceAnalyzer>(source)
 			.RunAsync(TestContext.Current.CancellationToken);
 
@@ -48,8 +48,7 @@ public sealed class AccessibilityAnalyzerTests
 
 	[Theory]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedMethods), MemberType = typeof(AccessibilityTestCases))]
-	public async Task AccessibleMethods_AreAccepted(string source, string[] _) =>
+	public async Task AccessibleMethods_AreAccepted(string source) =>
 		await AnalyzerTestHelpers.CreateAnalyzerTest<RegisterServicesMethodAnalyzer>(source)
 			.RunAsync(TestContext.Current.CancellationToken);
-
 }

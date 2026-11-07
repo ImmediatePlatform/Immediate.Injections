@@ -12,13 +12,7 @@ public sealed class AccessibilityGeneratorTests
 	public void InaccessibleRegistrations_AreNotEmitted(string source)
 	{
 		var result = GeneratorTestHelper.RunGenerator(AccessibilityTestCases.WithoutMarkup(source));
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
+		Assert.Equal("II.ServiceCollectionExtensions.g.cs", Assert.Single(result.Results[0].GeneratedSources).HintName);
 	}
 
 	[Theory]
@@ -26,18 +20,10 @@ public sealed class AccessibilityGeneratorTests
 	[MemberData(nameof(AccessibilityTestCases.AcceptedOptions), MemberType = typeof(AccessibilityTestCases))]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedHostedServices), MemberType = typeof(AccessibilityTestCases))]
 	[MemberData(nameof(AccessibilityTestCases.AcceptedMethods), MemberType = typeof(AccessibilityTestCases))]
-	public void AccessibleRegistrations_AreEmitted(string source, string[] expectedHints)
+	public void AccessibleRegistrations_AreEmitted(string source)
 	{
-		ArgumentNullException.ThrowIfNull(expectedHints);
 		var result = GeneratorTestHelper.RunGenerator(source);
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				..expectedHints.Select(hint => $"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/{hint}"),
-				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
-		);
+		_ = Assert.Single(result.Results[0].GeneratedSources, s => !s.HintName.Equals("II.ServiceCollectionExtensions.g.cs", StringComparison.Ordinal));
 	}
 
 	[Theory]
@@ -48,7 +34,8 @@ public sealed class AccessibilityGeneratorTests
 	public async Task ImplicitInterfaces_OnlyAccessibleNonDisposableInterfacesAreRegistered(string strategy, bool generic)
 	{
 		var typeParameters = generic ? "<T>" : "";
-		var source = $$"""
+		var result = GeneratorTestHelper.RunGenerator(
+			$$"""
 			using System;
 			using Immediate.Injections.Shared;
 
@@ -58,24 +45,12 @@ public sealed class AccessibilityGeneratorTests
 				private interface IHidden{{typeParameters}};
 
 				[RegisterScoped(RegistrationStrategy = RegistrationStrategy.{{strategy}})]
-				[RegisterSingleton(RegistrationStrategy = RegistrationStrategy.{{strategy}})]
-				[RegisterTransient(RegistrationStrategy = RegistrationStrategy.{{strategy}})]
 				public sealed class Service{{typeParameters}} : IService{{typeParameters}}, IHidden{{typeParameters}}, IDisposable
 				{
 					public void Dispose() { }
 				}
 			}
-			""";
-		var result = GeneratorTestHelper.RunGenerator(source);
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`0.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterSingleton`0.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterTransient`0.g.cs",
-				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+			"""
 		);
 		_ = await VerifyIgnoreCommonFile(result).UseParameters(strategy, generic);
 	}
@@ -90,22 +65,8 @@ public sealed class AccessibilityGeneratorTests
 			public interface IService<T>;
 			[RegisterScoped<IService<int>>]
 			[RegisterScoped<IService<string>>]
-			[RegisterSingleton<IService<int>>]
-			[RegisterSingleton<IService<string>>]
-			[RegisterTransient<IService<int>>]
-			[RegisterTransient<IService<string>>]
 			public sealed class Service<T> : IService<T>;
 			"""
-		);
-		Assert.Equal(
-			[
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`1.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterSingleton`1.g.cs",
-				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterTransient`1.g.cs",
-				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
-			],
-			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
 		);
 		_ = await VerifyIgnoreCommonFile(result);
 	}

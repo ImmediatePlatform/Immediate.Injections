@@ -18,7 +18,8 @@ public sealed class RegistrationDefaultsAttribute : Attribute
 	///		Sets the default <see cref="Shared.RegistrationStrategy"/> for the assembly.
 	/// </summary>
 	/// <remarks>
-	///		Default value is <see cref="RegistrationStrategy.Self"/>.
+	///		Default value is <see cref="RegistrationStrategy.None"/>. With no explicit registration strategy,
+	///		a provided service type is used; otherwise the targeted class is registered as itself.
 	/// </remarks>
 	public RegistrationStrategy RegistrationStrategy { get; init; }
 

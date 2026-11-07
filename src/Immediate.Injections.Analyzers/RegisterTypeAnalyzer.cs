@@ -224,7 +224,7 @@ file sealed class TypeAnalyzer(
 {
 	public bool AnalyzeRegisterType0Attribute()
 	{
-		var valid = true;
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
 
 		var assemblyAttributes = context.Compilation.Assembly.GetAttributes();
 		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
@@ -242,6 +242,9 @@ file sealed class TypeAnalyzer(
 
 		if (serviceType is { })
 		{
+			if (!RegistrationAccessibility.IsTypeAccessable(serviceType))
+				valid = false;
+
 			if (arguments.GetArgumentValue("RegistrationStrategy") is { })
 			{
 				context.ReportDiagnostic(
@@ -363,6 +366,9 @@ file sealed class TypeAnalyzer(
 
 			case "ImplementedInterfaces":
 			{
+				if (!HasAccessibleImplementedInterface())
+					valid = false;
+
 				break;
 			}
 
@@ -381,7 +387,7 @@ file sealed class TypeAnalyzer(
 
 	public bool AnalyzeRegisterType1Attribute()
 	{
-		var valid = true;
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
 
 		if (attribute.AttributeClass is not
 			{
@@ -393,6 +399,9 @@ file sealed class TypeAnalyzer(
 		{
 			return valid;
 		}
+
+		if (!RegistrationAccessibility.IsTypeAccessable(serviceTypeSymbol))
+			valid = false;
 
 		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
 		if (conversionType is ConversionType.Invalid)
@@ -425,7 +434,7 @@ file sealed class TypeAnalyzer(
 
 	public bool AnalyzeRegisterType2Attribute()
 	{
-		var valid = true;
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
 
 		if (!containerSymbol.IsGenericType)
 		{
@@ -468,6 +477,10 @@ file sealed class TypeAnalyzer(
 			valid = false;
 		}
 
+		if (!RegistrationAccessibility.IsTypeAccessable(serviceTypeSymbol)
+			|| !RegistrationAccessibility.IsTypeAccessable(implementationTypeSymbol))
+			valid = false;
+
 		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
 		if (conversionType is ConversionType.Invalid)
 			valid = false;
@@ -496,6 +509,20 @@ file sealed class TypeAnalyzer(
 
 		return valid;
 	}
+
+	private bool HasAccessibleImplementedInterface() =>
+		containerSymbol.AllInterfaces.Any(i =>
+			RegistrationAccessibility.IsTypeAccessable(i)
+			&& (!containerSymbol.IsGenericType
+				? !i.IsIDisposable
+				: i.IsGenericType
+					&& i.Arity == containerSymbol.Arity
+					&& i.TypeArguments.All(t => t is ITypeParameterSymbol)
+					&& context.Compilation.ClassifyConversion(
+						containerSymbol,
+						i.ConstructedFrom.Construct(containerSymbol.TypeArguments, containerSymbol.TypeArgumentNullableAnnotations)
+					) is { IsIdentity: true } or { IsImplicit: true, IsReference: true })
+		);
 
 	private ConversionType ImplementsService(
 		INamedTypeSymbol implementationTypeSymbol,

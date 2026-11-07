@@ -9,12 +9,12 @@ public sealed class RegisterHostedServiceAnalyzer : DiagnosticAnalyzer
 {
 	public static readonly DiagnosticDescriptor InvalidHostedService = new(
 		id: DiagnosticIds.INJ0018InvalidHostedService,
-		title: "Hosted services must be concrete non-generic implementations of IHostedService",
-		messageFormat: "Type '{0}' must be a concrete non-generic implementation of IHostedService",
+		title: "RegisterHostedService target is invalid",
+		messageFormat: "Type '{0}' has attribute `[RegisterHostedService]` but does not implement `IHostedService` or cannot be registered due to accessibility",
 		category: "ImmediateInjections",
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true,
-		description: "RegisterHostedService requires a concrete non-generic implementation of Microsoft.Extensions.Hosting.IHostedService.",
+		description: "RegisterHostedService requires a concrete, non-generic, accessible implementation of Microsoft.Extensions.Hosting.IHostedService.",
 		customTags: [WellKnownDiagnosticTags.NotConfigurable]
 	);
 

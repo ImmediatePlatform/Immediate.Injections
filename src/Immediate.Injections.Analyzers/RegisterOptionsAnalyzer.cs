@@ -47,7 +47,7 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 		new(
 			id: DiagnosticIds.INJ0016OptionsTargetIsUnsupported,
 			title: "Registered options must be a non-generic, non-abstract class",
-			messageFormat: "Type '{0}' has attribute `[{1}]` but is generic or abstract",
+			messageFormat: "Type '{0}' has attribute `[{1}]` but is generic or abstract or cannot be registered due to accessibility",
 			category: "ImmediateInjections",
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true,
@@ -98,7 +98,10 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 
 			var location = attribute.ApplicationSyntaxReference?.GetSyntax(token).GetLocation();
 
-			if (context.Symbol is INamedTypeSymbol { IsGenericType: true } or INamedTypeSymbol { IsAbstract: true })
+			if (
+				context.Symbol is INamedTypeSymbol { IsGenericType: true } or INamedTypeSymbol { IsAbstract: true }
+				|| !RegistrationAccessibility.IsTypeAccessable(context.Symbol as ITypeSymbol)
+			)
 			{
 				context.ReportDiagnostic(
 					Diagnostic.Create(

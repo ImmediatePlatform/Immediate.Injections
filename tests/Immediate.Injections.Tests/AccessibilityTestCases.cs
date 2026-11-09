@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace Immediate.Injections.Tests;
 
-public static class AccessibilityTestCases
+public static partial class AccessibilityTestCases
 {
 	// Exercise the shared accessibility rules once, with representative cases for each registration path.
 	public static TheoryData<string> RejectedLifetimes { get; } =
@@ -206,14 +208,14 @@ public static class AccessibilityTestCases
 			"""),
 	];
 
+	[GeneratedRegex(@"\{\|INJ\d{4}:(?<core>.*?)\|\}", RegexOptions.ExplicitCapture)]
+	private static partial Regex MarkupTag();
+
 	public static string WithoutMarkup(string source)
 	{
 		ArgumentNullException.ThrowIfNull(source);
-		return source.Replace("{|INJ0001:", "", StringComparison.Ordinal)
-			.Replace("{|INJ0002:", "", StringComparison.Ordinal)
-			.Replace("{|INJ0016:", "", StringComparison.Ordinal)
-			.Replace("{|INJ0018:", "", StringComparison.Ordinal)
-			.Replace("|}", "", StringComparison.Ordinal);
+
+		return MarkupTag().Replace(source, "$1");
 	}
 
 	private static string Wrap(string source) =>

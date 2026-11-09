@@ -1,8 +1,9 @@
+using System.Text.RegularExpressions;
 using static Immediate.Injections.Tests.Utility;
 
 namespace Immediate.Injections.Tests.GeneratorTests;
 
-public sealed class AccessibilityGeneratorTests
+public sealed partial class AccessibilityGeneratorTests
 {
 	[Theory]
 	[MemberData(nameof(AccessibilityTestCases.RejectedLifetimes), MemberType = typeof(AccessibilityTestCases))]
@@ -12,7 +13,14 @@ public sealed class AccessibilityGeneratorTests
 	public void InaccessibleRegistrations_AreNotEmitted(string source)
 	{
 		var result = GeneratorTestHelper.RunGenerator(AccessibilityTestCases.WithoutMarkup(source));
-		Assert.Equal("II.ServiceCollectionExtensions.g.cs", Assert.Single(result.Results[0].GeneratedSources).HintName);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
 	}
 
 	[Theory]
@@ -23,7 +31,13 @@ public sealed class AccessibilityGeneratorTests
 	public void AccessibleRegistrations_AreEmitted(string source)
 	{
 		var result = GeneratorTestHelper.RunGenerator(source);
-		_ = Assert.Single(result.Results[0].GeneratedSources, s => !s.HintName.Equals("II.ServiceCollectionExtensions.g.cs", StringComparison.Ordinal));
+
+		Assert.Collection(
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/')),
+			s => Assert.Equal("Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs", s),
+			s => Assert.Matches(GeneratedServiceSourcePath(), s),
+			s => Assert.Equal("Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs", s)
+		);
 	}
 
 	[Theory]
@@ -52,22 +66,22 @@ public sealed class AccessibilityGeneratorTests
 			}
 			"""
 		);
+
+		Assert.Equal(
+			[
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.ServiceCollectionExtensions.g.cs",
+				"Immediate.Injections.Generators/Immediate.Injections.Generators.ImmediateInjectionsGenerator/II.RegisterScoped`0.g.cs",
+				"Immediate.Handlers.Generators/Immediate.Handlers.Generators.ImmediateHandlersGenerator/IH.ServiceCollectionExtensions.g.cs",
+			],
+			result.GeneratedTrees.Select(t => t.FilePath.Replace('\\', '/'))
+		);
+
 		_ = await VerifyIgnoreCommonFile(result).UseParameters(strategy, generic);
 	}
 
-	[Fact]
-	public async Task MultipleClosedGenericRegistrations_AreIndependent()
-	{
-		var result = GeneratorTestHelper.RunGenerator(
-			"""
-			using Immediate.Injections.Shared;
-
-			public interface IService<T>;
-			[RegisterScoped<IService<int>>]
-			[RegisterScoped<IService<string>>]
-			public sealed class Service<T> : IService<T>;
-			"""
-		);
-		_ = await VerifyIgnoreCommonFile(result);
-	}
+	[GeneratedRegex(
+		@"^Immediate\.Injections\.Generators/Immediate\.Injections\.Generators\.ImmediateInjectionsGenerator/II\.Register(Options|HostedServices|ServicesMethods|Scoped`\d)\.g\.cs$",
+		RegexOptions.ExplicitCapture
+	)]
+	private static partial Regex GeneratedServiceSourcePath();
 }

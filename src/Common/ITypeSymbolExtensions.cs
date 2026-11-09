@@ -26,7 +26,7 @@ internal static class ITypeSymbolExtensions
 				Parameters: [{ Type.IsIServiceCollection: true }] or [{ Type.IsIServiceCollection: true }, { Type.IsReadOnlySpanString: true }],
 				ContainingType: { } container,
 			}
-			&& RegistrationAccessibility.IsTypeAccessable(container);
+			&& RegistrationAccessibility.IsTypeAccessable(container.ContainingAssembly, container);
 	}
 
 	extension([NotNullWhen(true)] ITypeSymbol? typeSymbol)
@@ -214,7 +214,7 @@ internal static class ITypeSymbolExtensions
 						},
 					},
 				})
-			&& RegistrationAccessibility.IsTypeAccessable(typeSymbol);
+			&& RegistrationAccessibility.IsTypeAccessable(typeSymbol.ContainingAssembly, typeSymbol);
 
 		public bool IsValidFactoryMethod(string? factory, bool isKeyed)
 		{

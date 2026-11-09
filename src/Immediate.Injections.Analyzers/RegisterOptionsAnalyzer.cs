@@ -100,7 +100,7 @@ public sealed class RegisterOptionsAnalyzer : DiagnosticAnalyzer
 
 			if (
 				context.Symbol is INamedTypeSymbol { IsGenericType: true } or INamedTypeSymbol { IsAbstract: true }
-				|| !RegistrationAccessibility.IsTypeAccessable(context.Symbol as ITypeSymbol)
+				|| !RegistrationAccessibility.IsTypeAccessable(context.Symbol.ContainingAssembly, context.Symbol as ITypeSymbol)
 			)
 			{
 				context.ReportDiagnostic(

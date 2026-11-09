@@ -224,7 +224,7 @@ file sealed class TypeAnalyzer(
 {
 	public bool AnalyzeRegisterType0Attribute()
 	{
-		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, containerSymbol);
 
 		var assemblyAttributes = context.Compilation.Assembly.GetAttributes();
 		var defaultsAttribute = assemblyAttributes.FirstOrDefault(a => a.AttributeClass.IsRegistrationDefaultsAttribute);
@@ -242,7 +242,7 @@ file sealed class TypeAnalyzer(
 
 		if (serviceType is { })
 		{
-			if (!RegistrationAccessibility.IsTypeAccessable(serviceType))
+			if (!RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, serviceType))
 				valid = false;
 
 			if (arguments.GetArgumentValue("RegistrationStrategy") is { })
@@ -387,7 +387,7 @@ file sealed class TypeAnalyzer(
 
 	public bool AnalyzeRegisterType1Attribute()
 	{
-		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, containerSymbol);
 
 		if (attribute.AttributeClass is not
 			{
@@ -400,7 +400,7 @@ file sealed class TypeAnalyzer(
 			return valid;
 		}
 
-		if (!RegistrationAccessibility.IsTypeAccessable(serviceTypeSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, serviceTypeSymbol))
 			valid = false;
 
 		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
@@ -434,7 +434,7 @@ file sealed class TypeAnalyzer(
 
 	public bool AnalyzeRegisterType2Attribute()
 	{
-		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol);
+		var valid = RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, containerSymbol);
 
 		if (!containerSymbol.IsGenericType)
 		{
@@ -477,9 +477,11 @@ file sealed class TypeAnalyzer(
 			valid = false;
 		}
 
-		if (!RegistrationAccessibility.IsTypeAccessable(serviceTypeSymbol)
-			|| !RegistrationAccessibility.IsTypeAccessable(implementationTypeSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, serviceTypeSymbol)
+			|| !RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, implementationTypeSymbol))
+		{
 			valid = false;
+		}
 
 		var conversionType = ImplementsService(containerSymbol, serviceTypeSymbol);
 		if (conversionType is ConversionType.Invalid)
@@ -512,7 +514,7 @@ file sealed class TypeAnalyzer(
 
 	private bool HasAccessibleImplementedInterface() =>
 		containerSymbol.AllInterfaces.Any(i =>
-			RegistrationAccessibility.IsTypeAccessable(i)
+			RegistrationAccessibility.IsTypeAccessable(containerSymbol.ContainingAssembly, i)
 			&& (!containerSymbol.IsGenericType
 				? !i.IsIDisposable
 				: i.IsGenericType

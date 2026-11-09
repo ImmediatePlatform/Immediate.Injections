@@ -4,13 +4,13 @@ namespace Immediate.Injections;
 
 internal static class RegistrationAccessibility
 {
-	public static bool IsTypeAccessable(ITypeSymbol? typeSymbol)
+	public static bool IsTypeAccessable(IAssemblySymbol assembly, ITypeSymbol? typeSymbol)
 	{
 		return typeSymbol switch
 		{
-			IArrayTypeSymbol { ElementType: var elementType } => IsTypeAccessable(elementType),
+			IArrayTypeSymbol { ElementType: var elementType } => IsTypeAccessable(assembly, elementType),
 
-			INamedTypeSymbol namedTypeSymbol => IsTypeAccessable(namedTypeSymbol),
+			INamedTypeSymbol namedTypeSymbol => IsTypeAccessable(assembly, namedTypeSymbol),
 
 			null => false,
 
@@ -18,16 +18,24 @@ internal static class RegistrationAccessibility
 		};
 	}
 
-	public static bool IsTypeAccessable(INamedTypeSymbol namedTypeSymbol)
+	public static bool IsTypeAccessable(IAssemblySymbol assembly, INamedTypeSymbol namedTypeSymbol)
 	{
 		if (namedTypeSymbol.IsFileLocal)
 			return false;
 
-		if (namedTypeSymbol.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+		if (!(
+				namedTypeSymbol.DeclaredAccessibility is Accessibility.Public
+				|| (
+					namedTypeSymbol.DeclaredAccessibility is Accessibility.Internal or Accessibility.ProtectedOrInternal
+					&& SymbolEqualityComparer.Default.Equals(namedTypeSymbol.ContainingAssembly, assembly)
+				)
+		))
+		{
 			return false;
+		}
 
 		if (namedTypeSymbol.ContainingType is { } container
-			&& !IsTypeAccessable(container))
+			&& !IsTypeAccessable(assembly, container))
 		{
 			return false;
 		}
@@ -38,7 +46,7 @@ internal static class RegistrationAccessibility
 
 		foreach (var argument in namedTypeSymbol.TypeArguments)
 		{
-			if (!IsTypeAccessable(argument))
+			if (!IsTypeAccessable(assembly, argument))
 				return false;
 		}
 

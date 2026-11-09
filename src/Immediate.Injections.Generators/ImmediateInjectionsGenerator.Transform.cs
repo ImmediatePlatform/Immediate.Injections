@@ -44,7 +44,7 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
 			return new([]);
 
-		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, targetSymbol))
 			return new([]);
 
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
@@ -85,7 +85,7 @@ public sealed partial class ImmediateInjectionsGenerator
 						if (useProxy && factory is { })
 							return [];
 
-						if (!RegistrationAccessibility.IsTypeAccessable(serviceType))
+						if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, serviceType))
 							return [];
 
 						if (!targetSymbol.IsGenericType)
@@ -196,7 +196,7 @@ public sealed partial class ImmediateInjectionsGenerator
 									i.IsGenericType
 									&& i.Arity == targetSymbol.Arity
 									&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
-									&& RegistrationAccessibility.IsTypeAccessable(i)
+									&& RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, i)
 									&& context.SemanticModel.Compilation.ClassifyConversion(
 										targetSymbol,
 										i.ConstructedFrom.Construct(
@@ -217,7 +217,7 @@ public sealed partial class ImmediateInjectionsGenerator
 							.Where(
 								i =>
 									!i.IsIDisposable
-									&& RegistrationAccessibility.IsTypeAccessable(i)
+									&& RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, i)
 							)
 							.Select(i =>
 								BuildRegistration(
@@ -248,7 +248,7 @@ public sealed partial class ImmediateInjectionsGenerator
 										i.IsGenericType
 										&& i.Arity == targetSymbol.Arity
 										&& i.TypeArguments.All(tp => tp is ITypeParameterSymbol)
-										&& RegistrationAccessibility.IsTypeAccessable(i)
+										&& RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, i)
 										&& context.SemanticModel.Compilation.ClassifyConversion(
 											targetSymbol,
 											i.ConstructedFrom.Construct(
@@ -276,7 +276,7 @@ public sealed partial class ImmediateInjectionsGenerator
 								.Where(
 									i =>
 										!i.IsIDisposable
-										&& RegistrationAccessibility.IsTypeAccessable(i)
+										&& RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, i)
 								)
 								.Select(i =>
 									BuildRegistration(i,
@@ -323,7 +323,7 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
 			return new([]);
 
-		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, targetSymbol))
 			return new([]);
 
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
@@ -347,7 +347,7 @@ public sealed partial class ImmediateInjectionsGenerator
 							INamedTypeSymbol serviceSymbol,
 						],
 					}
-					|| !RegistrationAccessibility.IsTypeAccessable(serviceSymbol)
+					|| !RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, serviceSymbol)
 				)
 				{
 					return null;
@@ -414,7 +414,7 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol targetSymbol)
 			return new([]);
 
-		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, targetSymbol))
 			return new([]);
 
 		var assemblyAttributes = context.SemanticModel.Compilation.Assembly.GetAttributes();
@@ -438,8 +438,8 @@ public sealed partial class ImmediateInjectionsGenerator
 						],
 					}
 					|| !SymbolEqualityComparer.Default.Equals(implementationSymbol.OriginalDefinition, targetSymbol)
-					|| !RegistrationAccessibility.IsTypeAccessable(serviceSymbol)
-					|| !RegistrationAccessibility.IsTypeAccessable(implementationSymbol)
+					|| !RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, serviceSymbol)
+					|| !RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, implementationSymbol)
 				)
 				{
 					return null;
@@ -506,7 +506,7 @@ public sealed partial class ImmediateInjectionsGenerator
 		if (context.TargetSymbol is not INamedTypeSymbol { IsGenericType: false, IsAbstract: false } targetSymbol)
 			return null;
 
-		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol))
+		if (!RegistrationAccessibility.IsTypeAccessable(targetSymbol.ContainingAssembly, targetSymbol))
 			return null;
 
 		var compilation = context.SemanticModel.Compilation;
